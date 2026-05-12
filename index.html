@@ -94,70 +94,27 @@
     display:block;
   }
 
-  .coming-soon{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    min-width:420px;
-    padding:26px 30px;
-    border-radius:18px;
-    border:2px solid rgba(255,255,255,.18);
-    background:rgba(12,19,36,.72);
-    box-shadow:0 16px 34px rgba(0,0,0,.35);
-    text-align:center;
-    pointer-events:none;
-  }
-
-  .coming-soon h2{
-    margin:0 0 8px;
-    font-size:34px;
-    font-weight:1000;
-  }
-
-  .coming-soon p{
-    margin:0;
-    color:#c9d5ee;
-    font-size:15px;
-    font-weight:900;
-  }
-
-  :root{
-    --tile-w:13.45vw;
-    --tile-h:14.2vh;
-    --gap:.78vw;
-    --left:.8vw;
-    --top:.7vh;
-    --right:.8vw;
-    --bottom:8.2vh;
-    --blue1:#2e8cff;
-    --blue2:#06398e;
-    --blue3:#061b4f;
-    --line:#a9ddff;
-    --dark:#11182c;
-  }
-
   #app{
     position:absolute;
     inset:0;
     background:transparent;
+    overflow:hidden;
   }
 
   .board{
     position:absolute;
     inset:0;
     pointer-events:none;
+    z-index:10;
   }
 
   .cell{
     position:absolute;
-    width:var(--tile-w);
-    height:var(--tile-h);
     border-radius:6px;
     border:3px solid #061133;
     background:
       radial-gradient(circle at 24% 22%, rgba(255,255,255,.28), transparent 30%),
-      linear-gradient(135deg,var(--blue1),var(--blue2) 52%,var(--blue3));
+      linear-gradient(135deg,#2e8cff,#06398e 52%,#061b4f);
     box-shadow:
       0 0 0 2px rgba(255,255,255,.85) inset,
       0 0 0 4px rgba(69,169,255,.55) inset,
@@ -193,7 +150,7 @@
     width:100%;
     text-align:center;
     font-weight:1000;
-    font-size:clamp(17px,1.65vw,28px);
+    font-size:clamp(16px,1.45vw,25px);
     line-height:1.03;
     letter-spacing:-1px;
     white-space:normal;
@@ -426,6 +383,34 @@
     color:#fff;
   }
 
+  .coming-soon{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    min-width:420px;
+    padding:26px 30px;
+    border-radius:18px;
+    border:2px solid rgba(255,255,255,.18);
+    background:rgba(12,19,36,.72);
+    box-shadow:0 16px 34px rgba(0,0,0,.35);
+    text-align:center;
+    pointer-events:none;
+  }
+
+  .coming-soon h2{
+    margin:0 0 8px;
+    font-size:34px;
+    font-weight:1000;
+  }
+
+  .coming-soon p{
+    margin:0;
+    color:#c9d5ee;
+    font-size:15px;
+    font-weight:900;
+  }
+
   .broadcast .setup,
   .broadcast .controls{
     display:none !important;
@@ -470,49 +455,49 @@
   <main class="stage" id="captureStage">
     <section class="content-view active" data-view="starmarble">
       <div id="app">
-  <div class="board" id="board"></div>
-  <div class="piece-layer" id="pieceLayer"></div>
-  <div class="team-panel" id="teamPanel"></div>
+        <div class="board" id="board"></div>
+        <div class="piece-layer" id="pieceLayer"></div>
+        <div class="team-panel" id="teamPanel"></div>
 
-  <div class="setup" id="setup">
-    <h1>캄몬 주루마블 설정</h1>
-    <p>달리는 말 개수 선택 후 팀 이름을 입력해줘.</p>
-    <div class="setup-row">
-      <select id="teamCount">
-        <option value="2">2팀</option>
-        <option value="3">3팀</option>
-        <option value="4" selected>4팀</option>
-        <option value="5">5팀</option>
-        <option value="6">6팀</option>
-      </select>
-      <button class="btn small dark" id="makeTeamsBtn">칸 만들기</button>
-    </div>
-    <div id="teamInputs"></div>
-    <div class="setup-row" style="justify-content:center;margin-top:12px">
-      <button class="btn green" id="startBtn">게임 시작</button>
-      <button class="btn dark" id="loadBtn">저장된 게임 불러오기</button>
-    </div>
-  </div>
+        <div class="setup" id="setup">
+          <h1>캄몬 주루마블 설정</h1>
+          <p>달리는 말 개수 선택 후 팀 이름을 입력해줘.</p>
+          <div class="setup-row">
+            <select id="teamCount">
+              <option value="2">2팀</option>
+              <option value="3">3팀</option>
+              <option value="4" selected>4팀</option>
+              <option value="5">5팀</option>
+              <option value="6">6팀</option>
+            </select>
+            <button class="btn small dark" id="makeTeamsBtn">칸 만들기</button>
+          </div>
+          <div id="teamInputs"></div>
+          <div class="setup-row" style="justify-content:center;margin-top:12px">
+            <button class="btn green" id="startBtn">게임 시작</button>
+            <button class="btn dark" id="loadBtn">저장된 게임 불러오기</button>
+          </div>
+        </div>
 
-  <div class="event-pop" id="eventPop">
-    <div class="event-type" id="eventType">도착</div>
-    <div class="event-title" id="eventTitle">미니게임</div>
-    <div class="slot" id="slot"><div class="slot-inner" id="slotInner"></div></div>
-    <div class="event-desc" id="eventDesc">성공/실패를 선택해주세요.</div>
-    <div class="event-actions" id="eventActions"></div>
-  </div>
+        <div class="event-pop" id="eventPop">
+          <div class="event-type" id="eventType">도착</div>
+          <div class="event-title" id="eventTitle">미니게임</div>
+          <div class="slot" id="slot"><div class="slot-inner" id="slotInner"></div></div>
+          <div class="event-desc" id="eventDesc">성공/실패를 선택해주세요.</div>
+          <div class="event-actions" id="eventActions"></div>
+        </div>
 
-  <div class="controls" id="controls">
-    <div class="turn-label">현재 턴: <span class="turn-name" id="turnName">준비중</span></div>
-    <input id="moveNum" type="number" min="1" max="20" placeholder="칸수" />
-    <button class="btn green" id="moveBtn">이동</button>
-    <button class="btn" id="nextBtn">턴넘김</button>
-    <button class="btn orange" id="editBtn">수정</button>
-    <button class="btn dark" id="broadcastBtn">송출모드</button>
-    <button class="btn red" id="resetBtn">초기화</button>
-  </div>
+        <div class="controls" id="controls">
+          <div class="turn-label">현재 턴: <span class="turn-name" id="turnName">준비중</span></div>
+          <input id="moveNum" type="number" min="1" max="20" placeholder="칸수" />
+          <button class="btn green" id="moveBtn">이동</button>
+          <button class="btn" id="nextBtn">턴넘김</button>
+          <button class="btn orange" id="editBtn">수정</button>
+          <button class="btn dark" id="broadcastBtn">송출모드</button>
+          <button class="btn red" id="resetBtn">초기화</button>
+        </div>
 
-  <button class="btn red broadcast-exit" id="exitBroadcastBtn">설정복귀</button>
+        <button class="btn red broadcast-exit" id="exitBroadcastBtn">설정복귀</button>
       </div>
     </section>
 
@@ -540,33 +525,30 @@
 
   const boardData = [
     {label:'START', type:'start', cls:'start'},
+    {label:'뽑기찬스', type:'chance', cls:'orange'},
+    {label:'동티어 스폰', type:'mission', cls:'purple'},
+    {label:'미니게임', type:'minigame', cls:'red'},
+    {label:'윗티어 스폰', type:'mission', cls:'purple'},
+    {label:'감옥\n2회 감금', type:'prison', cls:'prison'},
+
+    {label:'상식퀴즈쇼', type:'quiz', cls:'orange'},
+    {label:'동티어 스폰', type:'mission', cls:'purple'},
+    {label:'미니게임', type:'minigame', cls:'red'},
+    {label:'뽑기찬스', type:'chance', cls:'orange'},
+    {label:'윗티어 스폰', type:'mission', cls:'purple'},
+    {label:'LUCKY\n한번 더!', type:'lucky', cls:'orange'},
+
+    {label:'동티어 스폰', type:'mission', cls:'purple'},
+    {label:'미니게임', type:'minigame', cls:'red'},
+    {label:'뽑기찬스', type:'chance', cls:'orange'},
+    {label:'상식퀴즈쇼', type:'quiz', cls:'orange'},
+    {label:'2회 감금\n(더블 시 탈출)', type:'prison', cls:'prison'},
+
+    {label:'미니게임', type:'minigame', cls:'red'},
+    {label:'동티어 스폰', type:'mission', cls:'purple'},
+    {label:'상식퀴즈쇼', type:'quiz', cls:'orange'},
     {label:'던진만큼 뒤로..', type:'backDice', cls:'purple'},
-    {label:'상식퀴즈쇼', type:'quiz', cls:'orange'},
-    {label:'윗티어 스폰', type:'mission', cls:'purple'},
-    {label:'동티어 스폰', type:'mission', cls:'purple'},
-    {label:'감옥
-2회 감금', type:'prison', cls:'prison'},
-
-    {label:'미니게임', type:'minigame', cls:'red'},
-    {label:'상식퀴즈쇼', type:'quiz', cls:'orange'},
-    {label:'뽑기찬스', type:'chance', cls:'orange'},
-    {label:'미니게임', type:'minigame', cls:'red'},
-    {label:'동티어 스폰', type:'mission', cls:'purple'},
-    {label:'LUCKY
-한번 더!', type:'lucky', cls:'orange'},
-
-    {label:'윗티어 스폰', type:'mission', cls:'purple'},
-    {label:'뽑기찬스', type:'chance', cls:'orange'},
-    {label:'미니게임', type:'minigame', cls:'red'},
-    {label:'동티어 스폰', type:'mission', cls:'purple'},
-    {label:'2회 감금
-(더블 시 탈출)', type:'prison', cls:'prison'},
-
-    {label:'상식퀴즈쇼', type:'quiz', cls:'orange'},
-    {label:'윗티어 스폰', type:'mission', cls:'purple'},
-    {label:'미니게임', type:'minigame', cls:'red'},
-    {label:'동티어 스폰', type:'mission', cls:'purple'},
-    {label:'뽑기찬스', type:'chance', cls:'orange'}
+    {label:'윗티어 스폰', type:'mission', cls:'purple'}
   ];
 
   const minigames = [
@@ -599,61 +581,70 @@
 
   const $ = (id) => document.getElementById(id);
 
-  function positions(){
+  function getLayout(){
     const app = $('app');
     const W = app.clientWidth || innerWidth;
     const H = app.clientHeight || innerHeight;
-    const tileW = W * 0.1345;
-    const tileH = H * 0.142;
-    const gap = W * 0.0078;
+    const gap = W * 0.009;
     const left = W * 0.008;
     const top = H * 0.007;
-    const bottom = H - tileH - H * 0.082;
-    const right = W - tileW - W * 0.008;
+    const bottomMargin = H * 0.082;
 
-    const bottomXs = [left, left+tileW+gap, left+(tileW+gap)*2, left+(tileW+gap)*3, left+(tileW+gap)*4, left+(tileW+gap)*5, right];
-    const topXs = [left, left+tileW+gap, left+(tileW+gap)*2, left+(tileW+gap)*3, left+(tileW+gap)*4, left+(tileW+gap)*5, right];
-    const sideYs = [top+tileH+gap, top+(tileH+gap)*2, top+(tileH+gap)*3, top+(tileH+gap)*4];
+    const tileW = (W - left*2 - gap*6) / 7;
+    const tileH = (H - top - bottomMargin - gap*4) / 6;
+    const bottom = H - bottomMargin - tileH;
+    const right = W - left - tileW;
 
-    // START 좌하단 기준 시계방향:
-    // 좌측 위로 이동 → 상단 오른쪽 이동 → 우측 아래로 이동 → 하단 왼쪽 이동
+    const bottomXs = Array.from({length:7}, (_,i)=>left + i*(tileW+gap));
+    const topXs = bottomXs;
+    const sideYs = Array.from({length:6}, (_,i)=>top + i*(tileH+gap));
+
+    return {W,H,gap,left,top,bottom,right,tileW,tileH,bottomXs,topXs,sideYs};
+  }
+
+  function positions(){
+    const l = getLayout();
+
+    // START 좌하단 기준 진짜 시계방향:
+    // 좌측 위로 → 상단 오른쪽 → 우측 아래 → 하단 왼쪽
     return [
-      {x:left, y:bottom},
+      {x:l.left, y:l.bottom},
 
-      {x:left, y:sideYs[3]},
-      {x:left, y:sideYs[2]},
-      {x:left, y:sideYs[1]},
-      {x:left, y:sideYs[0]},
-      {x:left, y:top},
+      {x:l.left, y:l.sideYs[4]},
+      {x:l.left, y:l.sideYs[3]},
+      {x:l.left, y:l.sideYs[2]},
+      {x:l.left, y:l.sideYs[1]},
+      {x:l.left, y:l.top},
 
-      {x:topXs[1], y:top},
-      {x:topXs[2], y:top},
-      {x:topXs[3], y:top},
-      {x:topXs[4], y:top},
-      {x:topXs[5], y:top},
-      {x:right, y:top},
+      {x:l.topXs[1], y:l.top},
+      {x:l.topXs[2], y:l.top},
+      {x:l.topXs[3], y:l.top},
+      {x:l.topXs[4], y:l.top},
+      {x:l.topXs[5], y:l.top},
+      {x:l.right, y:l.top},
 
-      {x:right, y:sideYs[0]},
-      {x:right, y:sideYs[1]},
-      {x:right, y:sideYs[2]},
-      {x:right, y:sideYs[3]},
-      {x:right, y:bottom},
+      {x:l.right, y:l.sideYs[1]},
+      {x:l.right, y:l.sideYs[2]},
+      {x:l.right, y:l.sideYs[3]},
+      {x:l.right, y:l.sideYs[4]},
+      {x:l.right, y:l.bottom},
 
-      {x:bottomXs[5], y:bottom},
-      {x:bottomXs[4], y:bottom},
-      {x:bottomXs[3], y:bottom},
-      {x:bottomXs[2], y:bottom},
-      {x:bottomXs[1], y:bottom}
+      {x:l.bottomXs[5], y:l.bottom},
+      {x:l.bottomXs[4], y:l.bottom},
+      {x:l.bottomXs[3], y:l.bottom},
+      {x:l.bottomXs[2], y:l.bottom},
+      {x:l.bottomXs[1], y:l.bottom}
     ];
   }
 
   function renderBoard(){
     const board = $('board');
     const ps = positions();
+    const l = getLayout();
     board.innerHTML = boardData.map((c,i)=>{
       const p = ps[i];
       const label = c.label.replace(/\n/g,'<br>');
-      return `<div class="cell ${c.type === 'start' ? 'start' : ''} ${c.type === 'prison' ? 'prison' : ''}" id="cell-${i}" style="left:${p.x}px;top:${p.y}px">
+      return `<div class="cell ${c.type === 'start' ? 'start' : ''} ${c.type === 'prison' ? 'prison' : ''}" id="cell-${i}" style="left:${p.x}px;top:${p.y}px;width:${l.tileW}px;height:${l.tileH}px">
         <div class="label ${c.cls || ''}">${label}</div>
       </div>`;
     }).join('');
@@ -1010,7 +1001,6 @@
   function toggleBroadcast(on){
     document.body.classList.toggle('broadcast', on);
   }
-
 
   function initTabs(){
     const buttons = [...document.querySelectorAll('.tab-btn')];

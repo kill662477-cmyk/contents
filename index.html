@@ -1270,7 +1270,7 @@
               <button class="btn dark" id="movieQuoteHideBtn">정답 숨김</button>
               <button class="btn" id="movieQuoteNextBtn">다음 문제</button>
             </div>
-            <iframe class="moviequote-admin-player" id="movieQuotePlayer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="https://www.youtube.com/embed/xQ9skQV3-DU?start=15&rel=0"></iframe>
+            <iframe class="moviequote-admin-player" id="movieQuotePlayer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="https://www.youtube.com/embed/xQ9skQV3-DU?start=15&end=20&rel=0&playsinline=1"></iframe>
           </aside>
 
           <main class="moviequote-stage">
@@ -2739,7 +2739,7 @@ if(typeof pickTtsSong===&#x27;function&#x27;){
 
     const player = el('movieQuotePlayer');
     if(player){
-      player.src = `https://www.youtube.com/embed/xQ9skQV3-DU?start=${m.start}&rel=0&playsinline=1${autoplay ? '&autoplay=1' : ''}`;
+      player.src = `https://www.youtube.com/embed/xQ9skQV3-DU?start=${m.start}&end=${m.start + 5}&rel=0&playsinline=1${autoplay ? '&autoplay=1' : ''}`;
     }
   }
 

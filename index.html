@@ -1917,5 +1917,34 @@ if(typeof pickTtsSong===&#x27;function&#x27;){
   init();
 })();
 </script>
+
+<script>
+(function(){
+  function getTtsOnlySongs(){
+    if(!window.songs || !Array.isArray(window.songs)) return [];
+    return window.songs.filter(s =>
+      s &&
+      typeof s.lyrics === 'string' &&
+      s.lyrics.trim().length > 0
+    );
+  }
+
+  window.getTtsOnlySongs = getTtsOnlySongs;
+
+  if(typeof window.pickTtsSong === 'function'){
+    let fixedTtsIndex = 0;
+
+    window.pickTtsSong = function(){
+      const ttsSongs = getTtsOnlySongs();
+      if(!ttsSongs.length) return null;
+
+      const song = ttsSongs[fixedTtsIndex % ttsSongs.length];
+      fixedTtsIndex++;
+      return song;
+    };
+  }
+})();
+</script>
+
 </body>
 </html>

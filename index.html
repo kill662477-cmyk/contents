@@ -1220,17 +1220,34 @@ lyrics:s[4]||&#x27;&#x27; }));
       });
       mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),120000);
     }
+    let ttsIndex = 0;
+    function pickTtsOnlySong(){
+      const ttsPool = songs.filter(s =&gt; s.lyrics &amp;&amp; String(s.lyrics).trim());
+      if(!ttsPool.length) return null;
+      const song = ttsPool[ttsIndex % ttsPool.length];
+      ttsIndex++;
+      return song;
+    }
+
     function newTtsQuestion(){
-      stopAll(); hideAnswer(); current = pickOne(); currentMix=[];
+      stopAll(); hideAnswer();
+      current = pickTtsOnlySong();
+      currentMix = [];
+      if(!current){
+        alert(&#x27;입력된 TTS 가사가 없습니다.&#x27;);
+        return;
+      }
+      round++;
+      updateStats();
       document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
-      document.getElementById(&#x27;questionHint&#x27;).textContent = &#x27;가사 데이터가 준비된 곡이면 TTS로 읽을 수 있습니다. 지금은 테스트용 구조입니다.&#x27;;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = &#x27;가사가 입력된 노래만 순서대로 출제됩니다.&#x27;;
       updateOverlay(false);
       setAnswer(current);
     }
     function speakLyrics(){
-      if(!current) newTtsQuestion();
+      if(!current || !(current.lyrics &amp;&amp; String(current.lyrics).trim())) newTtsQuestion();
       const text = (current?.lyrics || current?.tts || &#x27;&#x27;).trim();
-      if(!text){ alert(&#x27;이 곡은 아직 입력된 가사 데이터가 없습니다. 집에서 songs 데이터에 lyrics 값을 넣으면 바로 읽을 수 있습니다.&#x27;); return; }
+      if(!text){ alert(&#x27;입력된 TTS 가사가 없습니다.&#x27;); return; }
       stopTts();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = &#x27;ko-KR&#x27;; u.rate = .92; u.pitch = .75;
@@ -1918,33 +1935,6 @@ if(typeof pickTtsSong===&#x27;function&#x27;){
 })();
 </script>
 
-<script>
-(function(){
-  function getTtsOnlySongs(){
-    if(!window.songs || !Array.isArray(window.songs)) return [];
-    return window.songs.filter(s =>
-      s &&
-      typeof s.lyrics === 'string' &&
-      s.lyrics.trim().length > 0
-    );
-  }
-
-  window.getTtsOnlySongs = getTtsOnlySongs;
-
-  if(typeof window.pickTtsSong === 'function'){
-    let fixedTtsIndex = 0;
-
-    window.pickTtsSong = function(){
-      const ttsSongs = getTtsOnlySongs();
-      if(!ttsSongs.length) return null;
-
-      const song = ttsSongs[fixedTtsIndex % ttsSongs.length];
-      fixedTtsIndex++;
-      return song;
-    };
-  }
-})();
-</script>
 
 </body>
 </html>

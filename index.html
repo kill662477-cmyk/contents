@@ -899,6 +899,260 @@
       height:50vh;
     }
   }
+.moviequote-overlay-panel{min-width:420px;max-width:84vw}.moviequote-question{font-size:34px}.moviequote-title{font-size:28px}.moviequote-quote{font-size:22px}.moviequote-poster{width:110px;height:156px;flex-basis:110px}}
+
+
+
+  .moviequote-embed-wrap{
+    position:absolute;
+    inset:0;
+    background:#07111f;
+    overflow:hidden;
+  }
+
+  .moviequote-page{
+    position:absolute;
+    inset:0;
+    display:grid;
+    grid-template-columns:360px 1fr;
+    background:#07111f;
+    color:#fff;
+    font-family:Arial,"Pretendard","Noto Sans KR",sans-serif;
+    overflow:hidden;
+  }
+
+  .moviequote-admin-panel{
+    min-width:0;
+    height:100%;
+    padding:16px;
+    background:linear-gradient(180deg,rgba(10,16,33,.98),rgba(3,7,17,.98));
+    border-right:1px solid rgba(255,255,255,.12);
+    overflow:auto;
+  }
+
+  .moviequote-admin-panel h2{
+    margin:0 0 8px;
+    font-size:21px;
+    font-weight:1000;
+  }
+
+  .moviequote-admin-panel p{
+    margin:0 0 12px;
+    color:#b9c9ef;
+    font-size:12px;
+    font-weight:800;
+    line-height:1.4;
+  }
+
+  .moviequote-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-bottom:12px;
+  }
+
+  .moviequote-choice{
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:9px;
+    background:rgba(255,255,255,.07);
+    color:#fff;
+    padding:8px;
+    font-size:12px;
+    font-weight:1000;
+    text-align:left;
+    cursor:pointer;
+  }
+
+  .moviequote-choice.active{
+    background:linear-gradient(135deg,#1f6dff,#0a3194);
+    box-shadow:0 0 14px rgba(31,109,255,.45);
+  }
+
+  .moviequote-controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin:10px 0;
+  }
+
+  .moviequote-admin-player{
+    width:100%;
+    height:190px;
+    border:0;
+    border-radius:10px;
+    background:#000;
+    margin-top:8px;
+  }
+
+  .moviequote-stage{
+    position:relative;
+    min-width:0;
+    height:100%;
+    background:var(--chroma);
+    overflow:hidden;
+  }
+
+  .moviequote-overlay{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    min-width:560px;
+    max-width:820px;
+    padding:24px 32px 26px;
+    border-radius:22px;
+    background:linear-gradient(180deg,rgba(12,19,36,.92),rgba(5,10,25,.94));
+    border:3px solid rgba(255,255,255,.86);
+    box-shadow:
+      0 0 0 5px rgba(31,109,255,.55),
+      0 18px 40px rgba(0,0,0,.55);
+    text-align:center;
+  }
+
+  .moviequote-mode{
+    display:inline-block;
+    padding:7px 14px;
+    border-radius:999px;
+    background:linear-gradient(135deg,#1f6dff,#08307e);
+    color:#fff;
+    font-size:18px;
+    font-weight:1000;
+    box-shadow:0 0 14px rgba(31,109,255,.55);
+    margin-bottom:12px;
+  }
+
+  .moviequote-question{
+    font-size:44px;
+    font-weight:1000;
+    letter-spacing:-1.6px;
+    line-height:1.08;
+    color:#fff;
+    text-shadow:-2px -2px 0 #07101f,2px -2px 0 #07101f,-2px 2px 0 #07101f,2px 2px 0 #07101f,0 5px 12px rgba(0,0,0,.65);
+  }
+
+  .moviequote-answer{
+    display:none;
+    margin-top:18px;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+  }
+
+  .moviequote-answer.show{
+    display:flex;
+  }
+
+  .moviequote-poster{
+    position:relative;
+    width:132px;
+    height:188px;
+    flex:0 0 132px;
+    border-radius:10px;
+    overflow:hidden;
+    border:3px solid #fff;
+    background:linear-gradient(135deg,#1f6dff,#07101f);
+    box-shadow:0 0 18px rgba(255,255,255,.34),0 10px 20px rgba(0,0,0,.55);
+  }
+
+  .moviequote-poster img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .moviequote-poster-fallback{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px;
+    color:#fff;
+    font-size:24px;
+    font-weight:1000;
+    line-height:1.05;
+    text-align:center;
+    text-shadow:0 3px 8px rgba(0,0,0,.75);
+  }
+
+  .moviequote-answer-text{
+    min-width:0;
+    text-align:left;
+  }
+
+  .moviequote-title{
+    font-size:34px;
+    font-weight:1000;
+    line-height:1.12;
+    color:#ffe066;
+    text-shadow:-2px -2px 0 #2b1600,2px -2px 0 #2b1600,-2px 2px 0 #2b1600,2px 2px 0 #2b1600,0 5px 12px rgba(0,0,0,.65);
+  }
+
+  .moviequote-quote{
+    margin-top:10px;
+    font-size:26px;
+    font-weight:1000;
+    line-height:1.18;
+    color:#fff;
+    text-shadow:-2px -2px 0 #07101f,2px -2px 0 #07101f,-2px 2px 0 #07101f,2px 2px 0 #07101f,0 5px 12px rgba(0,0,0,.65);
+  }
+
+  .moviequote-small{
+    margin-top:6px;
+    color:#b9c9ef;
+    font-size:13px;
+    font-weight:900;
+  }
+
+  .broadcast .moviequote-page{
+    display:block;
+    background:var(--chroma);
+  }
+
+  .broadcast .moviequote-admin-panel{
+    display:none !important;
+  }
+
+  .broadcast .moviequote-stage{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+  }
+
+  .broadcast .moviequote-embed-wrap{
+    background:var(--chroma) !important;
+  }
+
+  @media (max-width:1100px){
+    .moviequote-page{
+      grid-template-columns:320px 1fr;
+    }
+
+    .moviequote-overlay{
+      min-width:420px;
+      max-width:84vw;
+    }
+
+    .moviequote-question{
+      font-size:34px;
+    }
+
+    .moviequote-title{
+      font-size:28px;
+    }
+
+    .moviequote-quote{
+      font-size:22px;
+    }
+
+    .moviequote-poster{
+      width:110px;
+      height:156px;
+      flex-basis:110px;
+    }
+  }
 
 
   .songquiz-embed-wrap{
@@ -928,6 +1182,7 @@
     <div class="side-title">컨텐츠 탭</div>
     <button class="tab-btn active" data-tab="starmarble">스타마블</button>
     <button class="tab-btn" data-tab="songquiz">노래 맞추기</button>
+    <button class="tab-btn" data-tab="moviequote">영화 대사 맞추기</button>
     <button class="tab-btn" data-tab="balance">밸런스토론</button>
     <button class="tab-btn" data-tab="mafia">마피아</button>
     <button class="tab-btn" data-tab="relay">릴레이 미션</button>
@@ -982,6 +1237,60 @@
         </div>
 
         <button class="btn red broadcast-exit" id="exitBroadcastBtn">설정복귀</button>
+      </div>
+    </section>
+
+
+    <section class="content-view" data-view="moviequote">
+      <div class="moviequote-embed-wrap">
+        <div class="moviequote-page">
+          <aside class="moviequote-admin-panel">
+            <h2>영화 명대사 맞추기</h2>
+            <p>노래맞추기처럼 왼쪽은 조작, 오른쪽 초록 배경 영역은 방송 캡처용입니다.</p>
+            <div class="moviequote-grid" id="movieQuoteList">
+              <button class="moviequote-choice" data-movie-idx="0">1. 0:15<br>극한직업</button>
+<button class="moviequote-choice" data-movie-idx="1">2. 0:30<br>기생충</button>
+<button class="moviequote-choice" data-movie-idx="2">3. 0:45<br>엑시트</button>
+<button class="moviequote-choice" data-movie-idx="3">4. 1:05<br>베테랑</button>
+<button class="moviequote-choice" data-movie-idx="4">5. 1:25<br>범죄도시</button>
+<button class="moviequote-choice" data-movie-idx="5">6. 1:55<br>내부자들</button>
+<button class="moviequote-choice" data-movie-idx="6">7. 2:28<br>7번방의 선물</button>
+<button class="moviequote-choice" data-movie-idx="7">8. 2:51<br>보이스</button>
+<button class="moviequote-choice" data-movie-idx="8">9. 3:14<br>도둑들</button>
+<button class="moviequote-choice" data-movie-idx="9">10. 3:32<br>범죄와의 전쟁</button>
+<button class="moviequote-choice" data-movie-idx="10">11. 4:04<br>써니</button>
+<button class="moviequote-choice" data-movie-idx="11">12. 6:04<br>암수살인</button>
+<button class="moviequote-choice" data-movie-idx="12">13. 7:04<br>신세계</button>
+<button class="moviequote-choice" data-movie-idx="13">14. 7:23<br>부당거래</button>
+<button class="moviequote-choice" data-movie-idx="14">15. 8:55<br>해바라기</button>
+            </div>
+            <div class="moviequote-controls">
+              <button class="btn green" id="movieQuotePlayBtn">현재 문제 재생</button>
+              <button class="btn orange" id="movieQuoteAnswerBtn">정답 공개</button>
+              <button class="btn dark" id="movieQuoteHideBtn">정답 숨김</button>
+              <button class="btn" id="movieQuoteNextBtn">다음 문제</button>
+            </div>
+            <iframe class="moviequote-admin-player" id="movieQuotePlayer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="https://www.youtube.com/embed/xQ9skQV3-DU?start=15&rel=0"></iframe>
+          </aside>
+
+          <main class="moviequote-stage">
+            <div class="moviequote-overlay">
+              <div class="moviequote-mode" id="movieQuoteMode">영화 명대사 맞추기 1번</div>
+              <div class="moviequote-question" id="movieQuoteQuestion">대사를 듣고 영화 제목 맞추기</div>
+              <div class="moviequote-answer" id="movieQuoteAnswer">
+                <div class="moviequote-poster">
+                  <div class="moviequote-poster-fallback" id="movieQuotePosterFallback">극한직업</div>
+                  <img id="movieQuotePoster" src="" alt="">
+                </div>
+                <div class="moviequote-answer-text">
+                  <div class="moviequote-title" id="movieQuoteTitle">정답: 극한직업</div>
+                  <div class="moviequote-quote" id="movieQuoteQuote">명대사: 지금까지 이런 맛은 없었다</div>
+                  <div class="moviequote-small" id="movieQuoteTime">영상 위치 0:15</div>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
     </section>
 
@@ -2399,6 +2708,56 @@ if(typeof pickTtsSong===&#x27;function&#x27;){
 })();
 </script>
 
+<script>
+(function(){
+  const MOVIE_QUOTES = [{"no": 1, "time": "0:15", "start": 15, "title": "극한직업", "quote": "지금까지 이런 맛은 없었다", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EA%B7%B9%ED%95%9C%EC%A7%81%EC%97%85%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 2, "time": "0:30", "start": 30, "title": "기생충", "quote": "너는 다 계획이 있구나", "poster": "https://upload.wikimedia.org/wikipedia/ko/thumb/6/60/%EA%B8%B0%EC%83%9D%EC%B6%A9_%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg/250px-%EA%B8%B0%EC%83%9D%EC%B6%A9_%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 3, "time": "0:45", "start": 45, "title": "엑시트", "quote": "따따따 따따!", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EC%97%91%EC%8B%9C%ED%8A%B8%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 4, "time": "1:05", "start": 65, "title": "베테랑", "quote": "어이가 없네", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B2%A0%ED%85%8C%EB%9E%91%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 5, "time": "1:25", "start": 85, "title": "범죄도시", "quote": "니 내 누군지 아니?", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B2%94%EC%A3%84%EB%8F%84%EC%8B%9C%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 6, "time": "1:55", "start": 115, "title": "내부자들", "quote": "모히또 가서 몰디브 한잔", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%82%B4%EB%B6%80%EC%9E%90%EB%93%A4%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 7, "time": "2:28", "start": 148, "title": "7번방의 선물", "quote": "예승이 콩 먹어", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/7%EB%B2%88%EB%B0%A9%EC%9D%98%20%EC%84%A0%EB%AC%BC%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 8, "time": "2:51", "start": 171, "title": "보이스", "quote": "전화 끊지 마세요", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B3%B4%EC%9D%B4%EC%8A%A4%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 9, "time": "3:14", "start": 194, "title": "도둑들", "quote": "씹던 껌입니다", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%8F%84%EB%91%91%EB%93%A4%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 10, "time": "3:32", "start": 212, "title": "범죄와의 전쟁", "quote": "살아있네", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B2%94%EC%A3%84%EC%99%80%EC%9D%98%20%EC%A0%84%EC%9F%81%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 11, "time": "4:04", "start": 244, "title": "써니", "quote": "써니!", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EC%8D%A8%EB%8B%88%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 12, "time": "6:04", "start": 364, "title": "암수살인", "quote": "일곱 명 더 있다", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EC%95%94%EC%88%98%EC%82%B4%EC%9D%B8%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 13, "time": "7:04", "start": 424, "title": "신세계", "quote": "드루와", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EC%8B%A0%EC%84%B8%EA%B3%84%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 14, "time": "7:23", "start": 443, "title": "부당거래", "quote": "호의가 계속되면 권리인 줄 알아요", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B6%80%EB%8B%B9%EA%B1%B0%EB%9E%98%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 15, "time": "8:55", "start": 535, "title": "해바라기", "quote": "꼭 그렇게 다 가져가야만 속이 후련했냐", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%ED%95%B4%EB%B0%94%EB%9D%BC%EA%B8%B0%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}];
+  let idx = 0;
+  function el(id){ return document.getElementById(id); }
+  function setMovie(i, autoplay){
+    idx = (i + MOVIE_QUOTES.length) % MOVIE_QUOTES.length;
+    const m = MOVIE_QUOTES[idx];
+
+    document.querySelectorAll('.moviequote-choice').forEach((b,n)=>b.classList.toggle('active', n===idx));
+
+    if(el('movieQuoteMode')) el('movieQuoteMode').textContent = `영화 명대사 맞추기 ${m.no}번`;
+    if(el('movieQuoteTitle')) el('movieQuoteTitle').textContent = `정답: ${m.title}`;
+    if(el('movieQuoteQuote')) el('movieQuoteQuote').textContent = `명대사: ${m.quote}`;
+    if(el('movieQuoteTime')) el('movieQuoteTime').textContent = `영상 위치 ${m.time}`;
+    if(el('movieQuotePosterFallback')) el('movieQuotePosterFallback').textContent = m.title;
+
+    const answer = el('movieQuoteAnswer');
+    if(answer) answer.classList.remove('show');
+
+    const poster = el('movieQuotePoster');
+    if(poster){
+      poster.style.display = 'block';
+      poster.src = m.poster;
+      poster.alt = m.title + ' 포스터';
+      poster.onerror = function(){ this.style.display = 'none'; };
+      poster.onload = function(){ this.style.display = 'block'; };
+    }
+
+    const player = el('movieQuotePlayer');
+    if(player){
+      player.src = `https://www.youtube.com/embed/xQ9skQV3-DU?start=${m.start}&rel=0&playsinline=1${autoplay ? '&autoplay=1' : ''}`;
+    }
+  }
+
+  function init(){
+    document.querySelectorAll('.moviequote-choice').forEach(btn=>{
+      btn.addEventListener('click', ()=>setMovie(Number(btn.dataset.movieIdx), false));
+    });
+    if(el('movieQuotePlayBtn')) el('movieQuotePlayBtn').onclick = ()=>setMovie(idx, true);
+    if(el('movieQuoteAnswerBtn')) el('movieQuoteAnswerBtn').onclick = ()=>{ const a=el('movieQuoteAnswer'); if(a) a.classList.add('show'); };
+    if(el('movieQuoteHideBtn')) el('movieQuoteHideBtn').onclick = ()=>{ const a=el('movieQuoteAnswer'); if(a) a.classList.remove('show'); };
+    if(el('movieQuoteNextBtn')) el('movieQuoteNextBtn').onclick = ()=>setMovie(idx + 1, true);
+    setMovie(0, false);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 
 </body>
 </html>

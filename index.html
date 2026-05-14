@@ -711,6 +711,26 @@
     }
   }
 
+
+  .songquiz-embed-wrap{
+    position:absolute;
+    inset:0;
+    background:#07111f;
+    overflow:hidden;
+  }
+
+  .songquiz-embed-frame{
+    display:block;
+    width:100%;
+    height:100%;
+    border:0;
+    background:#07111f;
+  }
+
+  .broadcast .songquiz-embed-wrap{
+    background:var(--chroma) !important;
+  }
+
 </style>
 </head>
 <body>
@@ -718,11 +738,11 @@
   <aside class="side-tabs">
     <div class="side-title">컨텐츠 탭</div>
     <button class="tab-btn active" data-tab="starmarble">스타마블</button>
+    <button class="tab-btn" data-tab="songquiz">노래 맞추기</button>
     <button class="tab-btn" data-tab="balance">밸런스토론</button>
     <button class="tab-btn" data-tab="mafia">마피아</button>
     <button class="tab-btn" data-tab="relay">릴레이 미션</button>
     <button class="tab-btn" data-tab="humanwrong">인간틀린그림</button>
-    <button class="tab-btn" data-tab="songquiz">노래 맞추기</button>
     <div class="tab-note">오른쪽 영역만 캡처하고 프릭샷 크로마키에서 초록색(#00FF00)을 제거하세요.</div>
   </aside>
 
@@ -803,7 +823,439 @@
     </section>
 
     <section class="content-view" data-view="songquiz">
-      <div class="coming-soon"><h2>노래 맞추기</h2><p>임시 탭입니다. 나중에 컨텐츠를 붙이면 됩니다.</p></div>
+      <div class="songquiz-embed-wrap">
+        <iframe class="songquiz-embed-frame" title="노래 맞추기" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;노래 맞추기 테스트&lt;/title&gt;
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+  &lt;style&gt;
+    :root{
+      --bg:#070b16;
+      --panel:#111827;
+      --panel2:#172033;
+      --card:#0f172a;
+      --line:rgba(255,255,255,.12);
+      --text:#f8fafc;
+      --muted:#aab7cf;
+      --point:#ffce3a;
+      --pink:#ff5fa2;
+      --blue:#5ee7ff;
+      --green:#7cff9b;
+      --danger:#ff6868;
+      --shadow:0 18px 45px rgba(0,0,0,.38);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Pretendard,system-ui,-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,sans-serif;background:radial-gradient(circle at top left,#20335f 0,#070b16 34%,#050711 100%);color:var(--text);min-height:100vh;}
+    button,input,textarea,select{font-family:inherit}
+    .wrap{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 40px}
+    .hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:18px;padding:20px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.03));box-shadow:var(--shadow)}
+    .hero h1{margin:0;font-size:34px;letter-spacing:-.04em;font-weight:900}
+    .hero p{margin:8px 0 0;color:var(--muted);font-weight:700}
+    .stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{padding:10px 13px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-weight:900;color:#fff;white-space:nowrap}
+    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    .tab{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--muted);font-size:18px;font-weight:900;padding:16px 10px;border-radius:20px;cursor:pointer;transition:.15s}
+    .tab.active{background:linear-gradient(135deg,var(--point),#ff8e3a);color:#1b1200;border-color:transparent;transform:translateY(-1px)}
+    .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}
+    .panel{border:1px solid var(--line);border-radius:26px;background:rgba(15,23,42,.88);box-shadow:var(--shadow);overflow:hidden}
+    .panel-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.04)}
+    .panel-title{font-weight:900;font-size:20px;letter-spacing:-.03em}
+    .panel-body{padding:18px}
+    .stage{min-height:360px;display:flex;flex-direction:column;gap:16px;justify-content:center;align-items:center;text-align:center;border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.10);padding:22px}
+    .big-mode{font-size:24px;font-weight:900;color:var(--point)}
+    .question-no{font-size:58px;font-weight:1000;letter-spacing:-.05em;line-height:1}
+    .hint{font-size:18px;color:var(--muted);font-weight:800;line-height:1.5}
+    .answer-box{width:100%;padding:18px;border-radius:22px;background:rgba(0,0,0,.22);border:1px solid var(--line);display:none}
+    .answer-box.show{display:block}
+    .answer-main{font-size:30px;font-weight:1000;letter-spacing:-.04em;color:#fff}
+    .answer-sub{margin-top:6px;font-size:18px;color:var(--muted);font-weight:800}
+    .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+    .btn{border:0;border-radius:18px;padding:15px 12px;font-size:16px;font-weight:1000;cursor:pointer;color:#07111f;background:#fff;box-shadow:0 8px 18px rgba(0,0,0,.24)}
+    .btn.primary{background:linear-gradient(135deg,var(--point),#ff9b30)}
+    .btn.blue{background:linear-gradient(135deg,var(--blue),#65a7ff)}
+    .btn.pink{background:linear-gradient(135deg,var(--pink),#ff8ad9)}
+    .btn.green{background:linear-gradient(135deg,var(--green),#a8ff5e)}
+    .btn.dark{background:rgba(255,255,255,.10);color:#fff;border:1px solid var(--line)}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .player-wrap{height:190px;border-radius:20px;overflow:hidden;background:#000;border:1px solid var(--line)}
+    #player{width:100%;height:100%}
+    .mix-players{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+    .mini-player{height:86px;border-radius:14px;overflow:hidden;background:#000;border:1px solid var(--line);opacity:.9}
+    .settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .field{display:flex;flex-direction:column;gap:7px}
+    .field label{font-size:13px;color:var(--muted);font-weight:900}
+    .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.22);color:#fff;padding:12px;font-weight:800;outline:none}
+    .field textarea{min-height:130px;resize:vertical;line-height:1.6}
+    .list{max-height:410px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+    .song-row{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;padding:11px 12px;border-radius:16px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}
+    .song-row .idx{font-weight:1000;color:var(--point)}
+    .song-row .name{font-weight:900;letter-spacing:-.02em}
+    .song-row .artist{font-size:13px;color:var(--muted);font-weight:800;margin-top:3px}
+    .song-row .time{font-size:12px;color:#dbeafe;font-weight:900;background:rgba(94,231,255,.11);padding:6px 8px;border-radius:999px}
+    .broadcast-capture{background:#00ff00;border-radius:26px;padding:18px;border:2px dashed rgba(255,255,255,.35);margin-bottom:14px;min-height:300px;display:flex;align-items:center;justify-content:center}
+    .overlay-card{width:100%;min-height:260px;border-radius:30px;background:linear-gradient(180deg,rgba(18,27,46,.96),rgba(13,21,37,.96));border:2px solid rgba(255,255,255,.12);box-shadow:0 18px 45px rgba(0,0,0,.42);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px}
+    .overlay-mode{font-size:34px;font-weight:1000;color:var(--point);letter-spacing:-.04em}
+    .overlay-q{font-size:72px;font-weight:1000;line-height:1;margin-top:22px;letter-spacing:-.06em;color:#fff}
+    .overlay-hint{margin-top:24px;font-size:25px;line-height:1.42;color:#c7d2e8;font-weight:900;word-break:keep-all}
+    .overlay-answer{margin-top:20px;font-size:30px;font-weight:1000;color:#fff;letter-spacing:-.04em}
+    .overlay-answer span{color:var(--point)}
+    .broadcast-note{font-size:13px;color:#d8fdda;background:rgba(0,0,0,.30);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 12px;margin-bottom:14px;font-weight:800;line-height:1.45}
+    .notice{font-size:13px;color:var(--muted);font-weight:700;line-height:1.55;margin-top:10px}
+    .scorebar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .score{flex:1;min-width:120px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:16px;padding:11px;text-align:center}
+    .score b{display:block;font-size:22px;color:var(--point)}
+    .score span{font-size:12px;color:var(--muted);font-weight:900}
+    @media(max-width:820px){.hero{align-items:flex-start;flex-direction:column}.hero h1{font-size:27px}.tabs{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.controls{grid-template-columns:1fr 1fr}.settings{grid-template-columns:1fr}.question-no{font-size:44px}.answer-main{font-size:24px}.player-wrap{height:160px}}
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;wrap&quot;&gt;
+    &lt;section class=&quot;hero&quot;&gt;
+      &lt;div&gt;
+        &lt;h1&gt;노래 맞추기 테스트&lt;/h1&gt;
+        &lt;p&gt;유튜브 모음집 2개 기반 · 1초/20초 힌트 · 3곡 믹스 · 직접입력 가사 데이터형&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;stats&quot;&gt;
+        &lt;div class=&quot;pill&quot;&gt;영상 2개&lt;/div&gt;
+        &lt;div class=&quot;pill&quot;&gt;총 &lt;span id=&quot;totalCount&quot;&gt;0&lt;/span&gt;곡&lt;/div&gt;
+        &lt;div class=&quot;pill&quot;&gt;중복방지 ON&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;div class=&quot;tabs&quot;&gt;
+      &lt;button class=&quot;tab active&quot; data-mode=&quot;one&quot;&gt;1초 듣고 맞추기&lt;/button&gt;
+      &lt;button class=&quot;tab&quot; data-mode=&quot;mix&quot;&gt;3곡 섞어 맞추기&lt;/button&gt;
+      &lt;button class=&quot;tab&quot; data-mode=&quot;tts&quot;&gt;가사 TTS 맞추기&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;main class=&quot;grid&quot;&gt;
+      &lt;section class=&quot;panel&quot;&gt;
+        &lt;div class=&quot;panel-head&quot;&gt;
+          &lt;div class=&quot;panel-title&quot; id=&quot;modeTitle&quot;&gt;1초 듣고 맞추기&lt;/div&gt;
+          &lt;button class=&quot;btn dark&quot; onclick=&quot;resetUsed()&quot;&gt;나온 문제 초기화&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;panel-body&quot;&gt;
+          &lt;div class=&quot;stage&quot;&gt;
+            &lt;div class=&quot;big-mode&quot; id=&quot;stageMode&quot;&gt;MODE 01&lt;/div&gt;
+            &lt;div class=&quot;question-no&quot; id=&quot;questionNo&quot;&gt;READY&lt;/div&gt;
+            &lt;div class=&quot;hint&quot; id=&quot;questionHint&quot;&gt;새 문제 버튼을 누르면 랜덤으로 출제됩니다.&lt;/div&gt;
+
+            &lt;div class=&quot;answer-box&quot; id=&quot;answerBox&quot;&gt;
+              &lt;div class=&quot;answer-main&quot; id=&quot;answerMain&quot;&gt;정답&lt;/div&gt;
+              &lt;div class=&quot;answer-sub&quot; id=&quot;answerSub&quot;&gt;가수 / 영상 / 시간&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;controls&quot; id=&quot;oneControls&quot;&gt;
+            &lt;button class=&quot;btn primary&quot; onclick=&quot;newOneQuestion()&quot;&gt;새 문제&lt;/button&gt;
+            &lt;button class=&quot;btn blue&quot; onclick=&quot;playOneSecond()&quot;&gt;1초 재생&lt;/button&gt;
+            &lt;button class=&quot;btn green&quot; onclick=&quot;playTwentySeconds()&quot;&gt;20초 힌트&lt;/button&gt;
+            &lt;button class=&quot;btn pink&quot; onclick=&quot;showAnswer()&quot;&gt;정답 공개&lt;/button&gt;
+            &lt;button class=&quot;btn dark&quot; onclick=&quot;stopAll()&quot;&gt;정지&lt;/button&gt;
+            &lt;button class=&quot;btn dark&quot; onclick=&quot;markPass()&quot;&gt;패스 처리&lt;/button&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;controls&quot; id=&quot;mixControls&quot; style=&quot;display:none&quot;&gt;
+            &lt;button class=&quot;btn primary&quot; onclick=&quot;newMixQuestion()&quot;&gt;새 믹스 문제&lt;/button&gt;
+            &lt;button class=&quot;btn blue&quot; onclick=&quot;playMix()&quot;&gt;3곡 동시 재생&lt;/button&gt;
+            &lt;button class=&quot;btn green&quot; onclick=&quot;playMixHint()&quot;&gt;20초 믹스 힌트&lt;/button&gt;
+            &lt;button class=&quot;btn pink&quot; onclick=&quot;showAnswer()&quot;&gt;정답 공개&lt;/button&gt;
+            &lt;button class=&quot;btn dark&quot; onclick=&quot;stopAll()&quot;&gt;정지&lt;/button&gt;
+            &lt;button class=&quot;btn dark&quot; onclick=&quot;markPass()&quot;&gt;패스 처리&lt;/button&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;controls&quot; id=&quot;ttsControls&quot; style=&quot;display:none&quot;&gt;
+            &lt;button class=&quot;btn primary&quot; onclick=&quot;newTtsQuestion()&quot;&gt;새 가사 문제&lt;/button&gt;
+            &lt;button class=&quot;btn blue&quot; onclick=&quot;speakLyrics()&quot;&gt;준비된 가사 읽기&lt;/button&gt;
+            &lt;button class=&quot;btn green&quot; onclick=&quot;stopTts()&quot;&gt;TTS 정지&lt;/button&gt;
+            &lt;button class=&quot;btn pink&quot; onclick=&quot;showAnswer()&quot;&gt;정답 공개&lt;/button&gt;
+            &lt;button class=&quot;btn dark&quot; onclick=&quot;markPass()&quot;&gt;패스 처리&lt;/button&gt;
+            &lt;button class=&quot;btn dark&quot; onclick=&quot;hideAnswer()&quot;&gt;정답 숨김&lt;/button&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;scorebar&quot;&gt;
+            &lt;div class=&quot;score&quot;&gt;&lt;b id=&quot;roundCount&quot;&gt;0&lt;/b&gt;&lt;span&gt;출제 수&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;score&quot;&gt;&lt;b id=&quot;usedCount&quot;&gt;0&lt;/b&gt;&lt;span&gt;사용 곡 수&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;score&quot;&gt;&lt;b id=&quot;remainCount&quot;&gt;0&lt;/b&gt;&lt;span&gt;남은 곡&lt;/span&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;aside class=&quot;panel&quot;&gt;
+        &lt;div class=&quot;panel-head&quot;&gt;
+          &lt;div class=&quot;panel-title&quot;&gt;방송 송출 오버레이 / 플레이어&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;panel-body&quot;&gt;
+          &lt;div class=&quot;broadcast-note&quot;&gt;초록색 영역은 크로마키용입니다. OBS/프릭샷에서 이 송출 오버레이 박스만 영역 캡처해서 캠 소스 위에 올리면 됩니다.&lt;/div&gt;
+          &lt;div class=&quot;broadcast-capture&quot; id=&quot;broadcastCapture&quot;&gt;
+            &lt;div class=&quot;overlay-card&quot;&gt;
+              &lt;div class=&quot;overlay-mode&quot; id=&quot;overlayMode&quot;&gt;1초듣기 1번문제&lt;/div&gt;
+              &lt;div class=&quot;overlay-q&quot; id=&quot;overlayQ&quot;&gt;READY&lt;/div&gt;
+              &lt;div class=&quot;overlay-hint&quot; id=&quot;overlayHint&quot;&gt;새 문제를 준비해주세요&lt;/div&gt;
+              &lt;div class=&quot;overlay-answer&quot; id=&quot;overlayAnswer&quot;&gt;정답: &lt;span&gt;???&lt;/span&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;settings&quot;&gt;
+            &lt;div class=&quot;field&quot;&gt;
+              &lt;label&gt;출제 영상&lt;/label&gt;
+              &lt;select id=&quot;sourceFilter&quot; onchange=&quot;renderList()&quot;&gt;
+                &lt;option value=&quot;all&quot;&gt;전체&lt;/option&gt;
+                &lt;option value=&quot;ZkOMF2izt5k&quot;&gt;영상 1 · 50곡&lt;/option&gt;
+                &lt;option value=&quot;SEP7WEzI7NU&quot;&gt;영상 2 · 82곡&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;field&quot;&gt;
+              &lt;label&gt;검색&lt;/label&gt;
+              &lt;input id=&quot;searchInput&quot; oninput=&quot;renderList()&quot; placeholder=&quot;곡명/가수 검색&quot; /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;player-wrap&quot; id=&quot;singlePlayerBox&quot;&gt;&lt;div id=&quot;player&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;mix-players&quot; id=&quot;mixPlayerBox&quot; style=&quot;display:none&quot;&gt;
+            &lt;div class=&quot;mini-player&quot;&gt;&lt;div id=&quot;mixPlayer1&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+            &lt;div class=&quot;mini-player&quot;&gt;&lt;div id=&quot;mixPlayer2&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+            &lt;div class=&quot;mini-player&quot;&gt;&lt;div id=&quot;mixPlayer3&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;notice&quot;&gt;※ 테스트용이라 유튜브 임베드 정책상 모바일/브라우저에 따라 첫 재생은 직접 터치가 필요할 수 있음. 3곡 믹스는 브라우저가 동시 재생을 막으면 순차 터치가 필요할 수 있음.&lt;/div&gt;
+          &lt;hr style=&quot;border:0;border-top:1px solid var(--line);margin:16px 0&quot;&gt;
+          &lt;div class=&quot;list&quot; id=&quot;songList&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/aside&gt;
+    &lt;/main&gt;
+  &lt;/div&gt;
+
+  &lt;script src=&quot;https://www.youtube.com/iframe_api&quot;&gt;&lt;/script&gt;
+  &lt;script&gt;
+    const VIDEO1 = &#x27;ZkOMF2izt5k&#x27;;
+    const VIDEO2 = &#x27;SEP7WEzI7NU&#x27;;
+
+    function t(sec){ return sec; }
+    function fmt(sec){
+      const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+      return h ? `${String(h).padStart(2,&#x27;0&#x27;)}:${String(m).padStart(2,&#x27;0&#x27;)}:${String(s).padStart(2,&#x27;0&#x27;)}` : `${String(m).padStart(2,&#x27;0&#x27;)}:${String(s).padStart(2,&#x27;0&#x27;)}`;
+    }
+
+    const songs = [
+      // 영상 1 · 50곡
+      [&#x27;Gee&#x27;,&#x27;소녀시대&#x27;,VIDEO1,t(0)],[&#x27;거짓말&#x27;,&#x27;BIGBANG&#x27;,VIDEO1,t(199)],[&#x27;Fire&#x27;,&#x27;2NE1&#x27;,VIDEO1,t(427)],[&#x27;Lollipop&#x27;,&#x27;빅뱅 &amp; 2NE1&#x27;,VIDEO1,t(649)],[&#x27;Nobody&#x27;,&#x27;원더걸스&#x27;,VIDEO1,t(837)],[&#x27;So Hot&#x27;,&#x27;원더걸스&#x27;,VIDEO1,t(1048)],[&#x27;Bo Peep Bo Peep&#x27;,&#x27;티아라&#x27;,VIDEO1,t(1228)],[&#x27;Roly-Poly&#x27;,&#x27;티아라&#x27;,VIDEO1,t(1452)],[&#x27;U-Go-Girl&#x27;,&#x27;이효리&#x27;,VIDEO1,t(1665)],[&#x27;Abracadabra&#x27;,&#x27;브라운아이드걸스&#x27;,VIDEO1,t(1853)],[&#x27;My Style&#x27;,&#x27;브라운아이드걸스&#x27;,VIDEO1,t(2035)],[&#x27;누난 너무 예뻐&#x27;,&#x27;SHINee&#x27;,VIDEO1,t(2273)],[&#x27;8282&#x27;,&#x27;다비치&#x27;,VIDEO1,t(2486)],[&#x27;사랑스러워&#x27;,&#x27;김종국&#x27;,VIDEO1,t(2703)],[&#x27;Hug&#x27;,&#x27;동방신기&#x27;,VIDEO1,t(2968)],[&#x27;Snow Prince&#x27;,&#x27;SS501&#x27;,VIDEO1,t(3195)],[&#x27;Must Have Love&#x27;,&#x27;SG워너비 &amp; 브라운아이드걸스&#x27;,VIDEO1,t(3397)],[&#x27;Love Song&#x27;,&#x27;7공주&#x27;,VIDEO1,t(3653)],[&#x27;냉면&#x27;,&#x27;명카드라이브&#x27;,VIDEO1,t(3882)],[&#x27;I Don\&#x27;t Care&#x27;,&#x27;2NE1&#x27;,VIDEO1,t(4099)],[&#x27;Bad Girl Good Girl&#x27;,&#x27;miss A&#x27;,VIDEO1,t(4337)],[&#x27;Chu~♡&#x27;,&#x27;f(x)&#x27;,VIDEO1,t(4552)],[&#x27;10점 만점에 10점&#x27;,&#x27;2PM&#x27;,VIDEO1,t(4742)],[&#x27;Hot Issue&#x27;,&#x27;4minute&#x27;,VIDEO1,t(4943)],[&#x27;미스터&#x27;,&#x27;카라&#x27;,VIDEO1,t(5150)],[&#x27;Diva&#x27;,&#x27;애프터스쿨&#x27;,VIDEO1,t(5341)],[&#x27;만만하니&#x27;,&#x27;유키스&#x27;,VIDEO1,t(5539)],[&#x27;삐리빠빠&#x27;,&#x27;나르샤&#x27;,VIDEO1,t(5750)],[&#x27;삐리뽐 빼리뽐&#x27;,&#x27;남녀공학&#x27;,VIDEO1,t(5956)],[&#x27;Brand New&#x27;,&#x27;신화&#x27;,VIDEO1,t(6144)],[&#x27;Rainism&#x27;,&#x27;비&#x27;,VIDEO1,t(6370)],[&#x27;토요일밤에&#x27;,&#x27;손담비&#x27;,VIDEO1,t(6585)],[&#x27;유혹의 소나타&#x27;,&#x27;아이비&#x27;,VIDEO1,t(6806)],[&#x27;내 귀에 캔디&#x27;,&#x27;백지영&#x27;,VIDEO1,t(7010)],[&#x27;One More Time&#x27;,&#x27;쥬얼리&#x27;,VIDEO1,t(7233)],[&#x27;낭만 고양이&#x27;,&#x27;체리필터&#x27;,VIDEO1,t(7434)],[&#x27;나에게로 떠나는 여행&#x27;,&#x27;버즈&#x27;,VIDEO1,t(7657)],[&#x27;비행기&#x27;,&#x27;거북이&#x27;,VIDEO1,t(7863)],[&#x27;마쉬멜로우&#x27;,&#x27;아이유&#x27;,VIDEO1,t(8075)],[&#x27;기억을 걷는 시간&#x27;,&#x27;넬&#x27;,VIDEO1,t(8268)],[&#x27;사랑했나봐&#x27;,&#x27;윤도현&#x27;,VIDEO1,t(8578)],[&#x27;친구여&#x27;,&#x27;조PD feat. 인순이&#x27;,VIDEO1,t(8811)],[&#x27;사랑인걸&#x27;,&#x27;모세&#x27;,VIDEO1,t(9068)],[&#x27;내 여자라니까&#x27;,&#x27;이승기&#x27;,VIDEO1,t(9321)],[&#x27;사랑앓이&#x27;,&#x27;FTISLAND&#x27;,VIDEO1,t(9566)],[&#x27;친구의 고백&#x27;,&#x27;2AM&#x27;,VIDEO1,t(9808)],[&#x27;점점&#x27;,&#x27;브라운 아이즈&#x27;,VIDEO1,t(10065)],[&#x27;사랑..그게 뭔데&#x27;,&#x27;양파&#x27;,VIDEO1,t(10276)],[&#x27;총맞은것처럼&#x27;,&#x27;백지영&#x27;,VIDEO1,t(10514)],[&#x27;바람만바람만&#x27;,&#x27;김종국 &amp; SG워너비&#x27;,VIDEO1,t(10752)],
+      // 영상 2 · 82곡
+      [&#x27;풍선&#x27;,&#x27;동방신기&#x27;,VIDEO2,t(1)],[&#x27;혼자가 아닌 나&#x27;,&#x27;서영은&#x27;,VIDEO2,t(229)],[&#x27;파란&#x27;,&#x27;코요테&#x27;,VIDEO2,t(438)],[&#x27;파도&#x27;,&#x27;UN&#x27;,VIDEO2,t(665)],[&#x27;캔디&#x27;,&#x27;H.O.T&#x27;,VIDEO2,t(916)],[&#x27;촛불하나&#x27;,&#x27;god&#x27;,VIDEO2,t(1139)],[&#x27;제주도의 푸른 밤&#x27;,&#x27;태연&#x27;,VIDEO2,t(1345)],[&#x27;이 여름&#x27;,&#x27;쿨&#x27;,VIDEO2,t(1548)],[&#x27;운명&#x27;,&#x27;쿨&#x27;,VIDEO2,t(1784)],[&#x27;왜 이러니&#x27;,&#x27;티아라&#x27;,VIDEO2,t(2009)],[&#x27;예술이야&#x27;,&#x27;싸이&#x27;,VIDEO2,t(2249)],[&#x27;연예인&#x27;,&#x27;싸이&#x27;,VIDEO2,t(2529)],[&#x27;어땠을까&#x27;,&#x27;싸이 feat. 박정현&#x27;,VIDEO2,t(2734)],[&#x27;애상&#x27;,&#x27;쿨&#x27;,VIDEO2,t(2978)],[&#x27;아틀란티스 소녀&#x27;,&#x27;보아&#x27;,VIDEO2,t(3190)],[&#x27;아름다운 밤&#x27;,&#x27;울랄라세션&#x27;,VIDEO2,t(3415)],[&#x27;슬퍼지려 하기 전에&#x27;,&#x27;쿨&#x27;,VIDEO2,t(3638)],[&#x27;스키장에서&#x27;,&#x27;터보&#x27;,VIDEO2,t(3882)],[&#x27;사랑의 인사&#x27;,&#x27;씨야&#x27;,VIDEO2,t(4082)],[&#x27;사랑스러워&#x27;,&#x27;김종국&#x27;,VIDEO2,t(4357)],[&#x27;사랑과 전쟁&#x27;,&#x27;다비치 feat. 하하&#x27;,VIDEO2,t(4627)],[&#x27;비행기&#x27;,&#x27;거북이&#x27;,VIDEO2,t(4883)],[&#x27;비밀번호 486&#x27;,&#x27;윤하&#x27;,VIDEO2,t(5096)],[&#x27;비몽&#x27;,&#x27;코요테&#x27;,VIDEO2,t(5324)],[&#x27;비망록&#x27;,&#x27;버즈&#x27;,VIDEO2,t(5525)],[&#x27;붉은 노을&#x27;,&#x27;빅뱅&#x27;,VIDEO2,t(5764)],[&#x27;별이될게&#x27;,&#x27;디셈버&#x27;,VIDEO2,t(5969)],[&#x27;벌써 일년&#x27;,&#x27;브라운 아이즈&#x27;,VIDEO2,t(6181)],[&#x27;버스 안에서&#x27;,&#x27;자자&#x27;,VIDEO2,t(6389)],[&#x27;밥만 잘 먹더라&#x27;,&#x27;옴므&#x27;,VIDEO2,t(6582)],[&#x27;반짝반짝&#x27;,&#x27;걸스데이&#x27;,VIDEO2,t(6806)],[&#x27;미안해서 미안해&#x27;,&#x27;김진표 feat. 지나&#x27;,VIDEO2,t(6993)],[&#x27;뜨거운 안녕&#x27;,&#x27;싸이 feat. 성시경&#x27;,VIDEO2,t(7207)],[&#x27;다시 만난 세계&#x27;,&#x27;소녀시대&#x27;,VIDEO2,t(7417)],[&#x27;니가 참 좋아&#x27;,&#x27;쥬얼리&#x27;,VIDEO2,t(7683)],[&#x27;냉면&#x27;,&#x27;명카드라이브&#x27;,VIDEO2,t(7903)],[&#x27;깊은 밤을 날아서&#x27;,&#x27;규현&#x27;,VIDEO2,t(8122)],[&#x27;김밥&#x27;,&#x27;자두&#x27;,VIDEO2,t(8326)],[&#x27;You And I&#x27;,&#x27;박봄&#x27;,VIDEO2,t(8552)],[&#x27;Time to Love&#x27;,&#x27;티아라&#x27;,VIDEO2,t(8786)],[&#x27;톡톡&#x27;,&#x27;마이티 마우스&#x27;,VIDEO2,t(9005)],[&#x27;Time Less&#x27;,&#x27;SG워너비&#x27;,VIDEO2,t(9235)],[&#x27;Sweety&#x27;,&#x27;샵&#x27;,VIDEO2,t(9473)],[&#x27;Stand By Me&#x27;,&#x27;샤이니&#x27;,VIDEO2,t(9685)],[&#x27;Somedey&#x27;,&#x27;아이유&#x27;,VIDEO2,t(9932)],[&#x27;맨정신&#x27;,&#x27;빅뱅&#x27;,VIDEO2,t(10149)],[&#x27;Sign&#x27;,&#x27;브라운 아이드 걸스&#x27;,VIDEO2,t(10386)],[&#x27;Shock&#x27;,&#x27;비스트&#x27;,VIDEO2,t(10591)],[&#x27;토요일 밤에&#x27;,&#x27;손담비&#x27;,VIDEO2,t(10817)],[&#x27;하늘을 달리다&#x27;,&#x27;이적&#x27;,VIDEO2,t(11042)],[&#x27;건물 사이에 피어난 장미&#x27;,&#x27;하이키&#x27;,VIDEO2,t(11305)],[&#x27;로맨틱 겨울&#x27;,&#x27;김진표 feat. 김진호&#x27;,VIDEO2,t(11501)],[&#x27;롤리폴리&#x27;,&#x27;티아라&#x27;,VIDEO2,t(11751)],[&#x27;우리의 꿈&#x27;,&#x27;코요테&#x27;,VIDEO2,t(11965)],[&#x27;Nobody&#x27;,&#x27;원더걸스&#x27;,VIDEO2,t(12216)],[&#x27;No.1&#x27;,&#x27;보아&#x27;,VIDEO2,t(12431)],[&#x27;My Love&#x27;,&#x27;이승철&#x27;,VIDEO2,t(12625)],[&#x27;친구여&#x27;,&#x27;조PD feat. 인순이&#x27;,VIDEO2,t(12828)],[&#x27;Mr. Chu&#x27;,&#x27;에이핑크&#x27;,VIDEO2,t(13090)],[&#x27;달빛소년&#x27;,&#x27;체리필터&#x27;,VIDEO2,t(13305)],[&#x27;만남&#x27;,&#x27;코요테&#x27;,VIDEO2,t(13545)],[&#x27;Maria&#x27;,&#x27;김아중&#x27;,VIDEO2,t(13759)],[&#x27;사랑비&#x27;,&#x27;김태우&#x27;,VIDEO2,t(13947)],[&#x27;외톨이야&#x27;,&#x27;씨엔블루&#x27;,VIDEO2,t(14187)],[&#x27;가슴에 살아&#x27;,&#x27;언터쳐블 feat. 나르샤&#x27;,VIDEO2,t(14406)],[&#x27;Let Me Dance&#x27;,&#x27;렉시 feat. 테디&#x27;,VIDEO2,t(14635)],[&#x27;클락션&#x27;,&#x27;(여자)아이들&#x27;,VIDEO2,t(14860)],[&#x27;Joy&#x27;,&#x27;디바&#x27;,VIDEO2,t(15036)],[&#x27;I Don\&#x27;t Care&#x27;,&#x27;2NE1&#x27;,VIDEO2,t(15199)],[&#x27;내 손을 잡아&#x27;,&#x27;아이유&#x27;,VIDEO2,t(15438)],[&#x27;Her&#x27;,&#x27;블락비&#x27;,VIDEO2,t(15633)],[&#x27;Heaven&#x27;,&#x27;에일리&#x27;,VIDEO2,t(15813)],[&#x27;Good bye To Romance&#x27;,&#x27;써니힐&#x27;,VIDEO2,t(16025)],[&#x27;Festival&#x27;,&#x27;엄정화&#x27;,VIDEO2,t(16283)],[&#x27;Diva&#x27;,&#x27;애프터스쿨&#x27;,VIDEO2,t(16520)],[&#x27;데칼코마니&#x27;,&#x27;마마무&#x27;,VIDEO2,t(16719)],[&#x27;Doc와 춤&#x27;,&#x27;DJ DOC&#x27;,VIDEO2,t(16935)],[&#x27;칵테일 사랑&#x27;,&#x27;거북이&#x27;,VIDEO2,t(17128)],[&#x27;버스 안에서&#x27;,&#x27;자자&#x27;,VIDEO2,t(17340)],[&#x27;Blue&#x27;,&#x27;빅뱅&#x27;,VIDEO2,t(17533)],[&#x27;빙고&#x27;,&#x27;거북이&#x27;,VIDEO2,t(17767)],[&#x27;다시 여기 바닷가&#x27;,&#x27;싹쓰리&#x27;,VIDEO2,t(17959)]
+    ].map((s,i)=&gt;({ id:i+1, title:s[0], artist:s[1], videoId:s[2], start:s[3] }));
+
+    let player, mixPlayers = [], mode=&#x27;one&#x27;, current=null, currentMix=[], used = new Set(), round=0, ready=false;
+    let oneTimer=null, mixTimer=null;
+
+    function onYouTubeIframeAPIReady(){
+      player = new YT.Player(&#x27;player&#x27;, { videoId: VIDEO1, playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1}, events:{onReady:()=&gt;{ready=true;}} });
+      for(let i=1;i&lt;=3;i++){
+        mixPlayers.push(new YT.Player(&#x27;mixPlayer&#x27;+i, { videoId: VIDEO1, playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1} }));
+      }
+    }
+
+    function sample(arr, n=1){
+      const pool = [...arr]; const out=[];
+      while(pool.length &amp;&amp; out.length&lt;n){ out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); }
+      return n===1 ? out[0] : out;
+    }
+    function availableSongs(){
+      const source = document.getElementById(&#x27;sourceFilter&#x27;).value;
+      return songs.filter(s =&gt; (source===&#x27;all&#x27;||s.videoId===source) &amp;&amp; !used.has(s.id));
+    }
+    function pickOne(){
+      let pool = availableSongs();
+      if(!pool.length){ used.clear(); pool = availableSongs(); }
+      const song = sample(pool);
+      used.add(song.id);
+      round++;
+      updateStats();
+      return song;
+    }
+    function pickMix(){
+      let pool = availableSongs();
+      if(pool.length &lt; 3){ used.clear(); pool = availableSongs(); }
+      const selected = sample(pool,3);
+      selected.forEach(s=&gt;used.add(s.id));
+      round++;
+      updateStats();
+      return selected;
+    }
+    function setMode(next){
+      mode=next;
+      document.querySelectorAll(&#x27;.tab&#x27;).forEach(b=&gt;b.classList.toggle(&#x27;active&#x27;,b.dataset.mode===mode));
+      document.getElementById(&#x27;oneControls&#x27;).style.display = mode===&#x27;one&#x27;?&#x27;grid&#x27;:&#x27;none&#x27;;
+      document.getElementById(&#x27;mixControls&#x27;).style.display = mode===&#x27;mix&#x27;?&#x27;grid&#x27;:&#x27;none&#x27;;
+      document.getElementById(&#x27;ttsControls&#x27;).style.display = mode===&#x27;tts&#x27;?&#x27;grid&#x27;:&#x27;none&#x27;;
+      document.getElementById(&#x27;singlePlayerBox&#x27;).style.display = mode===&#x27;mix&#x27;?&#x27;none&#x27;:&#x27;block&#x27;;
+      document.getElementById(&#x27;mixPlayerBox&#x27;).style.display = mode===&#x27;mix&#x27;?&#x27;grid&#x27;:&#x27;none&#x27;;
+      const title = mode===&#x27;one&#x27;?&#x27;1초 듣고 맞추기&#x27;:mode===&#x27;mix&#x27;?&#x27;3곡 섞어 맞추기&#x27;:&#x27;가사 TTS 맞추기&#x27;;
+      document.getElementById(&#x27;modeTitle&#x27;).textContent=title;
+      document.getElementById(&#x27;stageMode&#x27;).textContent=mode===&#x27;one&#x27;?&#x27;MODE 01&#x27;:mode===&#x27;mix&#x27;?&#x27;MODE 02&#x27;:&#x27;MODE 03&#x27;;
+      document.getElementById(&#x27;questionNo&#x27;).textContent=&#x27;READY&#x27;;
+      document.getElementById(&#x27;questionHint&#x27;).textContent=&#x27;새 문제 버튼을 누르면 랜덤으로 출제됩니다.&#x27;;
+      current=null; currentMix=[];
+      hideAnswer(); stopAll(); updateOverlay(false);
+    }
+    document.querySelectorAll(&#x27;.tab&#x27;).forEach(btn=&gt;btn.addEventListener(&#x27;click&#x27;,()=&gt;setMode(btn.dataset.mode)));
+
+    function loadSongToPlayer(song, target=player, offset=8){
+      if(!target) return;
+      target.loadVideoById({videoId:song.videoId, startSeconds:song.start+offset});
+      target.pauseVideo?.();
+    }
+    function newOneQuestion(){
+      stopAll(); hideAnswer(); current = pickOne(); currentMix=[];
+      const offset = 8 + Math.floor(Math.random()*18);
+      current.playAt = current.start + offset;
+      document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = `영상 ${current.videoId===VIDEO1?&#x27;1&#x27;:&#x27;2&#x27;} · 랜덤 1초 구간 준비됨 · 실패하면 20초 힌트`;
+      updateOverlay(false);
+      loadSongToPlayer(current, player, offset);
+      setAnswer(current);
+    }
+    function playOneSecond(){
+      if(!current) newOneQuestion();
+      if(!player) return;
+      clearTimeout(oneTimer);
+      player.loadVideoById({videoId:current.videoId,startSeconds:current.playAt});
+      player.playVideo();
+      oneTimer=setTimeout(()=&gt;player.pauseVideo(),1050);
+    }
+    function playTwentySeconds(){
+      if(!current) newOneQuestion();
+      if(!player) return;
+      clearTimeout(oneTimer);
+      const start = Math.max(current.start+5, current.playAt-5);
+      player.loadVideoById({videoId:current.videoId,startSeconds:start});
+      player.playVideo();
+      oneTimer=setTimeout(()=&gt;player.pauseVideo(),20000);
+    }
+    function newMixQuestion(){
+      stopAll(); hideAnswer(); currentMix = pickMix(); current=null;
+      document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = `서로 다른 3곡을 동시에 맞히는 문제 · 정답은 3개 전부`;
+      updateOverlay(false);
+      currentMix.forEach((s,i)=&gt;{
+        s.playAt = s.start + 10 + Math.floor(Math.random()*12);
+        mixPlayers[i]?.loadVideoById({videoId:s.videoId,startSeconds:s.playAt});
+        mixPlayers[i]?.pauseVideo?.();
+      });
+      setAnswer(currentMix);
+    }
+    function playMix(){
+      if(!currentMix.length) newMixQuestion();
+      clearTimeout(mixTimer);
+      currentMix.forEach((s,i)=&gt;{
+        const p = mixPlayers[i];
+        if(!p) return;
+        p.loadVideoById({videoId:s.videoId,startSeconds:s.playAt});
+        p.setVolume?.(45);
+        p.playVideo?.();
+      });
+      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),8000);
+    }
+    function playMixHint(){
+      if(!currentMix.length) newMixQuestion();
+      clearTimeout(mixTimer);
+      currentMix.forEach((s,i)=&gt;{
+        const p = mixPlayers[i];
+        if(!p) return;
+        p.loadVideoById({videoId:s.videoId,startSeconds:Math.max(s.start+5,s.playAt-5)});
+        p.setVolume?.(40);
+        p.playVideo?.();
+      });
+      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),20000);
+    }
+    function newTtsQuestion(){
+      stopAll(); hideAnswer(); current = pickOne(); currentMix=[];
+      document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = &#x27;가사 데이터가 준비된 곡이면 TTS로 읽을 수 있습니다. 지금은 테스트용 구조입니다.&#x27;;
+      updateOverlay(false);
+      setAnswer(current);
+    }
+    function speakLyrics(){
+      if(!current) newTtsQuestion();
+      const text = (current?.lyrics || current?.tts || &#x27;&#x27;).trim();
+      if(!text){ alert(&#x27;이 곡은 아직 입력된 가사 데이터가 없습니다. 집에서 songs 데이터에 lyrics 값을 넣으면 바로 읽을 수 있습니다.&#x27;); return; }
+      stopTts();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = &#x27;ko-KR&#x27;; u.rate = .92; u.pitch = .75;
+      speechSynthesis.speak(u);
+    }
+    function stopTts(){ speechSynthesis.cancel(); }
+
+    function setAnswer(data){
+      if(Array.isArray(data)){
+        document.getElementById(&#x27;answerMain&#x27;).innerHTML = data.map((s,i)=&gt;`${i+1}. ${s.title}`).join(&#x27;&lt;br&gt;&#x27;);
+        document.getElementById(&#x27;answerSub&#x27;).innerHTML = data.map(s=&gt;`${s.artist} · 영상 ${s.videoId===VIDEO1?&#x27;1&#x27;:&#x27;2&#x27;} · ${fmt(s.start)}`).join(&#x27;&lt;br&gt;&#x27;);
+      }else{
+        document.getElementById(&#x27;answerMain&#x27;).textContent = data.title;
+        document.getElementById(&#x27;answerSub&#x27;).textContent = `${data.artist} · 영상 ${data.videoId===VIDEO1?&#x27;1&#x27;:&#x27;2&#x27;} · ${fmt(data.start)}`;
+      }
+    }
+    function showAnswer(){ document.getElementById(&#x27;answerBox&#x27;).classList.add(&#x27;show&#x27;); updateOverlay(true); }
+    function hideAnswer(){ document.getElementById(&#x27;answerBox&#x27;).classList.remove(&#x27;show&#x27;); updateOverlay(false); }
+    function markPass(){ showAnswer(); stopAll(); }
+    function stopAll(){
+      clearTimeout(oneTimer); clearTimeout(mixTimer);
+      try{player?.pauseVideo?.()}catch(e){}
+      mixPlayers.forEach(p=&gt;{try{p.pauseVideo?.()}catch(e){}});
+      stopTts();
+    }
+    function resetUsed(){ used.clear(); round=0; current=null; currentMix=[]; updateStats(); hideAnswer(); document.getElementById(&#x27;questionNo&#x27;).textContent=&#x27;READY&#x27;; document.getElementById(&#x27;questionHint&#x27;).textContent=&#x27;나온 문제 기록을 초기화했습니다.&#x27;; updateOverlay(false); }
+    function getModeKorean(){
+      if(mode===&#x27;one&#x27;) return &#x27;1초듣기&#x27;;
+      if(mode===&#x27;mix&#x27;) return &#x27;3곡믹스&#x27;;
+      return &#x27;가사듣기&#x27;;
+    }
+    function answerText(){
+      if(currentMix.length) return currentMix.map(s=&gt;s.title).join(&#x27; + &#x27;);
+      if(current) return current.title;
+      return &#x27;???&#x27;;
+    }
+    function updateOverlay(reveal=false){
+      const qText = round ? `${getModeKorean()} ${round}번문제` : `${getModeKorean()} 대기중`;
+      const modeEl = document.getElementById(&#x27;overlayMode&#x27;);
+      const qEl = document.getElementById(&#x27;overlayQ&#x27;);
+      const hintEl = document.getElementById(&#x27;overlayHint&#x27;);
+      const ansEl = document.getElementById(&#x27;overlayAnswer&#x27;);
+      if(!modeEl) return;
+      modeEl.textContent = qText;
+      qEl.textContent = round ? `Q${round}` : &#x27;READY&#x27;;
+      if(mode===&#x27;one&#x27;) hintEl.textContent = &#x27;랜덤 1초 구간 · 실패하면 20초 힌트&#x27;;
+      else if(mode===&#x27;mix&#x27;) hintEl.textContent = &#x27;노래 3곡이 동시에 재생됩니다&#x27;;
+      else hintEl.textContent = &#x27;음정 없이 가사만 읽어주는 문제&#x27;;
+      ansEl.innerHTML = `정답: &lt;span&gt;${reveal ? answerText() : &#x27;???&#x27;}&lt;/span&gt;`;
+    }
+    function updateStats(){
+      document.getElementById(&#x27;totalCount&#x27;).textContent=songs.length;
+      document.getElementById(&#x27;roundCount&#x27;).textContent=round;
+      document.getElementById(&#x27;usedCount&#x27;).textContent=used.size;
+      document.getElementById(&#x27;remainCount&#x27;).textContent=Math.max(0,songs.length-used.size);
+    }
+    function renderList(){
+      const q = document.getElementById(&#x27;searchInput&#x27;).value.trim().toLowerCase();
+      const source = document.getElementById(&#x27;sourceFilter&#x27;).value;
+      const filtered = songs.filter(s =&gt; (source===&#x27;all&#x27;||s.videoId===source) &amp;&amp; (!q || (s.title+s.artist).toLowerCase().includes(q)));
+      document.getElementById(&#x27;songList&#x27;).innerHTML = filtered.map((s,i)=&gt;`
+        &lt;div class=&quot;song-row&quot;&gt;
+          &lt;div class=&quot;idx&quot;&gt;${String(i+1).padStart(2,&#x27;0&#x27;)}&lt;/div&gt;
+          &lt;div&gt;&lt;div class=&quot;name&quot;&gt;${s.title}&lt;/div&gt;&lt;div class=&quot;artist&quot;&gt;${s.artist} · 영상 ${s.videoId===VIDEO1?&#x27;1&#x27;:&#x27;2&#x27;}&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;time&quot;&gt;${fmt(s.start)}&lt;/div&gt;
+        &lt;/div&gt;
+      `).join(&#x27;&#x27;);
+    }
+    updateStats(); renderList(); updateOverlay(false);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+" allow="autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>
+      </div>
     </section>
     <section class="content-view" data-view="mafia">
       <div class="mafia-plan">

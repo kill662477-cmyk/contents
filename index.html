@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>캄몬 컨텐츠 오버레이</title>
 <!-- 정리 기준: v10_cleanup / 탭별 원위치 수정, 송출 버튼 제거 유지, Firebase 연동 대비 state-render 구조 보강 -->
-<!-- 배포 기준: https://contents-mu.vercel.app/ / Firebase room 분리(room=live 기본), overlay 모드 읽기전용, OBS용 ?mode=overlay&tab=...&room=... 주소 지원 -->
+<!-- 배포 기준: https://contents-mu.vercel.app/ / Firebase room 분리, overlay 읽기전용, OBS 오디오 플레이어 유지, 노래 가사 리스트 보정 -->
 <style>
   *{box-sizing:border-box}
 
@@ -2548,7 +2548,14 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-embed-wrap{
   justify-content:center !important;
 }
 body.overlay-mode[data-overlay-target="songquiz"] .songquiz-embed-frame{
-  display:none !important;
+  display:block !important;
+  position:fixed !important;
+  left:-9999px !important;
+  top:0 !important;
+  width:1px !important;
+  height:1px !important;
+  opacity:.01 !important;
+  pointer-events:none !important;
 }
 .songquiz-object-overlay{
   display:none;
@@ -2780,6 +2787,26 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   }
   body.overlay-mode[data-overlay-target="moviequote"] .moviequote-overlay{
     pointer-events:none !important;
+  }
+  /* OBS 오버레이에서도 영화대사 소리가 나가도록 플레이어는 화면 밖에서 유지 */
+  body.overlay-mode[data-overlay-target="moviequote"] .moviequote-admin-panel{
+    display:block !important;
+    position:fixed !important;
+    left:-9999px !important;
+    top:0 !important;
+    width:1px !important;
+    height:1px !important;
+    padding:0 !important;
+    border:0 !important;
+    overflow:hidden !important;
+    opacity:.01 !important;
+    pointer-events:none !important;
+  }
+  body.overlay-mode[data-overlay-target="moviequote"] .moviequote-admin-player{
+    display:block !important;
+    width:1px !important;
+    height:1px !important;
+    opacity:.01 !important;
   }
   body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     pointer-events:none !important;
@@ -3230,7 +3257,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
 
     function onYouTubeIframeAPIReady(){
       player = new YT.Player(&#x27;player&#x27;, {
-        playerVars:{listType:&#x27;playlist&#x27;,list:(PLAYLISTS.find(p=&gt;p.key===&#x27;00s&#x27;)||PLAYLISTS[1]).playlistId,controls:1,rel:0,modestbranding:1,playsinline:1},
+        playerVars:{listType:&#x27;playlist&#x27;,list:(PLAYLISTS.find(p=&gt;p.key===&#x27;00s&#x27;)||PLAYLISTS[1]).playlistId,controls:1,rel:0,modestbranding:1,playsinline:1,enablejsapi:1},
         events:{
           onReady:()=&gt;{ ready=true; loadPlaylistSongs(); },
           onStateChange:e=&gt;{ if(e.data===YT.PlayerState.PLAYING) syncCurrentMeta(player,current); }
@@ -3239,7 +3266,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
 
       for(let i=1;i&lt;=3;i++){
         mixPlayers.push(new YT.Player(&#x27;mixPlayer&#x27;+i, {
-          playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1},
+          playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1,enablejsapi:1},
           events:{
             onStateChange:e=&gt;{
               if(e.data===YT.PlayerState.PLAYING){
@@ -3316,11 +3343,11 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       for(const source of sources){
         document.getElementById(&#x27;questionHint&#x27;).textContent=`전체 모드: ${source.name} 불러오는 중...`;
         player.cuePlaylist({list:source.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC});
-        await new Promise(resolve=&gt;setTimeout(resolve, 1400));
+        await new Promise(resolve=&gt;setTimeout(resolve, 1600));
         let ids = player.getPlaylist() || [];
-        if(!ids.length){
-          await new Promise(resolve=&gt;setTimeout(resolve, 1800));
-          ids = player.getPlaylist() || [];
+        for(let retry=0; retry&lt;4 &amp;&amp; !ids.length; retry++){
+          await new Promise(resolve=&gt;setTimeout(resolve, 1200));
+          try{ ids = player.getPlaylist() || []; }catch(e){ ids = []; }
         }
         merged.push(...makeSongsFromIds(ids, source, merged.length));
       }
@@ -3377,7 +3404,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       document.getElementById(&#x27;questionNo&#x27;).textContent=&#x27;READY&#x27;;
       document.getElementById(&#x27;questionHint&#x27;).textContent=&#x27;새 문제 버튼을 누르면 랜덤으로 출제됩니다.&#x27;;
       current=null; currentMix=[];
-      hideAnswer(); stopAll(); updateOverlay(false);
+      hideAnswer(); stopAll(); updateOverlay(false); renderList(); updateStats();
     }
     document.querySelectorAll(&#x27;.tab&#x27;).forEach(btn=&gt;btn.addEventListener(&#x27;click&#x27;,()=&gt;setMode(btn.dataset.mode)));
 
@@ -3598,16 +3625,31 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     }
 
     function updateStats(){
-      document.getElementById(&#x27;totalCount&#x27;).textContent=songs.length || 0;
-      document.getElementById(&#x27;roundCount&#x27;).textContent=round;
-      document.getElementById(&#x27;usedCount&#x27;).textContent=used.size;
-      document.getElementById(&#x27;remainCount&#x27;).textContent=Math.max(0,(songs.length || 0)-used.size);
+      const total = mode === &#x27;tts&#x27; ? TTS_BANK.length : (songs.length || 0);
+      const usedValue = mode === &#x27;tts&#x27; ? Math.min(ttsIndex, TTS_BANK.length) : used.size;
+      document.getElementById(&#x27;totalCount&#x27;).textContent = total;
+      document.getElementById(&#x27;roundCount&#x27;).textContent = round;
+      document.getElementById(&#x27;usedCount&#x27;).textContent = usedValue;
+      document.getElementById(&#x27;remainCount&#x27;).textContent = Math.max(0, total - usedValue);
     }
 
     function renderList(){
       const q = document.getElementById(&#x27;searchInput&#x27;).value.trim().toLowerCase();
+      const listEl = document.getElementById(&#x27;songList&#x27;);
+      if(mode === &#x27;tts&#x27;){
+        const filteredTts = TTS_BANK.map((s,i)=&gt;({ ...s, id:i+1, videoId:&#x27;TTS&#x27;, sourceName:&#x27;가사 TTS&#x27;, start:0 }))
+          .filter(s =&gt; !q || (`${s.title} ${s.artist} ${s.lyrics || &#x27;&#x27;}`).toLowerCase().includes(q));
+        listEl.innerHTML = filteredTts.map((s)=&gt;`
+        &lt;div class=&quot;song-row&quot;&gt;
+          &lt;div class=&quot;idx&quot;&gt;${String(s.id).padStart(3,&#x27;0&#x27;)}&lt;/div&gt;
+          &lt;div&gt;&lt;div class=&quot;name&quot;&gt;${cleanTitle(s.title)}&lt;/div&gt;&lt;div class=&quot;artist&quot;&gt;${s.sourceName} · ${s.artist || &#x27;가사입력&#x27;} · 가사 ${String(s.lyrics || &#x27;&#x27;).split(/\n+/).filter(Boolean).length}줄&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;time&quot;&gt;TTS&lt;/div&gt;
+        &lt;/div&gt;
+      `).join(&#x27;&#x27;) || `&lt;div class=&quot;song-row&quot;&gt;&lt;div class=&quot;idx&quot;&gt;!&lt;/div&gt;&lt;div&gt;&lt;div class=&quot;name&quot;&gt;검색 결과 없음&lt;/div&gt;&lt;div class=&quot;artist&quot;&gt;가사 입력된 노래 목록에서 찾을 수 없습니다&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;time&quot;&gt;&lt;/div&gt;&lt;/div&gt;`;
+        return;
+      }
       const filtered = songs.filter(s =&gt; !q || (s.title+s.artist+s.videoId).toLowerCase().includes(q));
-      document.getElementById(&#x27;songList&#x27;).innerHTML = filtered.slice(0,220).map((s,i)=&gt;`
+      listEl.innerHTML = filtered.slice(0,220).map((s,i)=&gt;`
         &lt;div class=&quot;song-row&quot;&gt;
           &lt;div class=&quot;idx&quot;&gt;${String(s.id).padStart(3,&#x27;0&#x27;)}&lt;/div&gt;
           &lt;div&gt;&lt;div class=&quot;name&quot;&gt;${cleanTitle(s.title)}&lt;/div&gt;&lt;div class=&quot;artist&quot;&gt;${s.sourceName || activePlaylist().name} · ${s.artist || &#x27;YouTube&#x27;} · ${s.videoId}&lt;/div&gt;&lt;/div&gt;
@@ -3756,7 +3798,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-&quot; allow=&quot;autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>
+"></iframe>
       </div>
     </section>
     <section class="content-view" data-view="mafia">
@@ -5971,7 +6013,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
 
     const player = el('movieQuotePlayer');
     if(player){
-      player.src = `https://www.youtube.com/embed/xQ9skQV3-DU?start=${m.start}&end=${m.start + 5}&rel=0&playsinline=1${autoplay ? '&autoplay=1' : ''}`;
+      player.src = `https://www.youtube.com/embed/xQ9skQV3-DU?start=${m.start}&end=${m.start + 5}&rel=0&playsinline=1&enablejsapi=1${autoplay ? '&autoplay=1&mute=0' : ''}`;
     }
 
     if(!skipCommit) commitMovieState(autoplay ? 'play' : 'select', {idx});

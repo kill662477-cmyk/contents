@@ -3130,8 +3130,64 @@
 
     function loadSongToPlayer(song, target=player, start=DEFAULT_START_SEC){
       if(!target || !song) return;
-      target.loadVideoById({videoId:song.videoId, startSeconds:start});
-      setTimeout(()=&gt;{ try{ target.pauseVideo?.(); syncCurrentMeta(target,song); }catch(e){} }, 700);
+      try{
+        if(target.cueVideoById){
+          target.cueVideoById({videoId:song.videoId,startSeconds:start});
+        }else{
+          target.loadVideoById({videoId:song.videoId,startSeconds:start});
+          target.pauseVideo?.();
+        }
+      }catch(e){}
+      setTimeout(()=&gt;{ try{ syncCurrentMeta(target,song); }catch(e){} }, 650);
+    }
+
+    function cueMixSlot(song, index, delay=0){
+      const p = mixPlayers[index];
+      if(!p || !song) return;
+      setTimeout(()=&gt;{
+        try{
+          p.setVolume?.(42);
+          if(p.cueVideoById){
+            p.cueVideoById({videoId:song.videoId,startSeconds:MIX_START_SEC});
+          }else{
+            p.loadVideoById({videoId:song.videoId,startSeconds:MIX_START_SEC});
+            p.pauseVideo?.();
+          }
+        }catch(e){}
+        setTimeout(()=&gt;{ try{ syncCurrentMeta(p,song); }catch(e){} }, 700);
+      }, delay);
+    }
+
+    function prepareMixPlayers(){
+      currentMix.forEach((s,i)=&gt;{
+        s.playAt = MIX_START_SEC;
+        cueMixSlot(s, i, i * 260);
+      });
+    }
+
+    function playPreparedMix(seconds){
+      if(!currentMix.length) newMixQuestion();
+      if(currentMix.length &lt; 3) return;
+      clearTimeout(mixTimer);
+      currentMix.forEach((s,i)=&gt;{
+        const p = mixPlayers[i];
+        if(!p) return;
+        setTimeout(()=&gt;{
+          try{
+            p.setVolume?.(42);
+            if(p.getVideoData?.()?.video_id !== s.videoId){
+              p.loadVideoById({videoId:s.videoId,startSeconds:MIX_START_SEC});
+            }else{
+              p.seekTo?.(MIX_START_SEC,true);
+              p.playVideo?.();
+            }
+            setTimeout(()=&gt;syncCurrentMeta(p,s), 500);
+          }catch(e){
+            try{ p.loadVideoById({videoId:s.videoId,startSeconds:MIX_START_SEC}); p.playVideo?.(); }catch(_e){}
+          }
+        }, i * 180);
+      });
+      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;{try{p.pauseVideo?.()}catch(e){}}), seconds*1000);
     }
 
     function newOneQuestion(){
@@ -3139,7 +3195,7 @@
       if(!current) return;
       current.playAt = ONE_SECOND_START_SEC;
       document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
-      document.getElementById(&#x27;questionHint&#x27;).textContent = `${activePlaylist().name} 개별곡 · 1초부터 1초 구간 준비됨 · 실패하면 20초 힌트`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = `${activePlaylist().name} 개별곡 · 문제만 준비됨 · 재생 버튼을 누르면 1초부터 1초 재생`;
       updateOverlay(false);
       loadSongToPlayer(current, player, current.playAt);
       setAnswer(current);
@@ -3170,44 +3226,18 @@
       stopAll(); hideAnswer(); currentMix = pickMix(); current=null;
       if(currentMix.length &lt; 3) return;
       document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
-      document.getElementById(&#x27;questionHint&#x27;).textContent = `플레이리스트에서 서로 다른 3곡을 동시에 맞히는 문제`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = `서로 다른 3곡 준비 완료 · 재생 버튼을 누르면 20초부터 동시에 재생`;
       updateOverlay(false);
-      currentMix.forEach((s,i)=&gt;{
-        s.playAt = MIX_START_SEC;
-        mixPlayers[i]?.loadVideoById({videoId:s.videoId,startSeconds:s.playAt});
-        setTimeout(()=&gt;{ try{ mixPlayers[i]?.pauseVideo?.(); syncCurrentMeta(mixPlayers[i],s); }catch(e){} }, 750);
-      });
+      prepareMixPlayers();
       setAnswer(currentMix);
     }
 
     function playMix(){
-      if(!currentMix.length) newMixQuestion();
-      if(currentMix.length &lt; 3) return;
-      clearTimeout(mixTimer);
-      currentMix.forEach((s,i)=&gt;{
-        const p = mixPlayers[i];
-        if(!p) return;
-        p.loadVideoById({videoId:s.videoId,startSeconds:MIX_START_SEC});
-        p.setVolume?.(42);
-        p.playVideo?.();
-        setTimeout(()=&gt;syncCurrentMeta(p,s), 500);
-      });
-      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),MIX_PLAY_SECONDS*1000);
+      playPreparedMix(MIX_PLAY_SECONDS);
     }
 
     function playMixHint(){
-      if(!currentMix.length) newMixQuestion();
-      if(currentMix.length &lt; 3) return;
-      clearTimeout(mixTimer);
-      currentMix.forEach((s,i)=&gt;{
-        const p = mixPlayers[i];
-        if(!p) return;
-        p.loadVideoById({videoId:s.videoId,startSeconds:MIX_START_SEC});
-        p.setVolume?.(40);
-        p.playVideo?.();
-        setTimeout(()=&gt;syncCurrentMeta(p,s), 500);
-      });
-      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),MIX_HINT_SECONDS*1000);
+      playPreparedMix(MIX_HINT_SECONDS);
     }
 
     function pickTtsOnlySong(){

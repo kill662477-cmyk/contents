@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>캄몬 컨텐츠 오버레이</title>
 <!-- 정리 기준: v10_cleanup / 탭별 원위치 수정, 송출 버튼 제거 유지, Firebase 연동 대비 state-render 구조 보강 -->
+<!-- 배포 기준: https://contents-mu.vercel.app/ / Firebase room 분리(room=live 기본), overlay 모드 읽기전용, OBS용 ?mode=overlay&tab=...&room=... 주소 지원 -->
 <style>
   *{box-sizing:border-box}
 
@@ -2672,9 +2673,10 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     height:100vh !important;
     background:#00FF00 !important;
   }
-  body.overlay-mode .side-tabs,
-  body.overlay-mode
-body.overlay-mode .stage{
+  body.overlay-mode .side-tabs{
+    display:none !important;
+  }
+  body.overlay-mode .stage{
     width:100vw !important;
     height:100vh !important;
     flex:1 1 100vw !important;
@@ -2762,6 +2764,30 @@ body.overlay-mode .stage{
   body.overlay-mode[data-overlay-target="mafia"] .mafia-card-row,
   body.overlay-mode[data-overlay-target="mafia"] .mafia-card{
     /* 카드/패널 자체는 유지 */
+  }
+
+
+  /* === realtime overlay URL mode hardening === */
+  body.overlay-mode .side-tabs,
+  body.overlay-mode .tab-note,
+  body.overlay-mode .tab-overlay-tools{
+    display:none !important;
+  }
+  body.overlay-mode[data-overlay-target="moviequote"] .moviequote-embed-wrap,
+  body.overlay-mode[data-overlay-target="songquiz"] .songquiz-embed-wrap,
+  body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-chat{
+    background:#00FF00 !important;
+  }
+  body.overlay-mode[data-overlay-target="moviequote"] .moviequote-overlay{
+    pointer-events:none !important;
+  }
+  body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
+    pointer-events:none !important;
+  }
+  body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-admin-panel,
+  body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-controls,
+  body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-tool-panel{
+    display:none !important;
   }
 
 </style>
@@ -3590,11 +3616,147 @@ body.overlay-mode .stage{
       `).join(&#x27;&#x27;) + (filtered.length&gt;220 ? `&lt;div class=&quot;song-row&quot;&gt;&lt;div class=&quot;idx&quot;&gt;+&lt;/div&gt;&lt;div&gt;&lt;div class=&quot;name&quot;&gt;${filtered.length-220}곡 더 있음&lt;/div&gt;&lt;div class=&quot;artist&quot;&gt;검색어를 입력하면 좁혀집니다&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;time&quot;&gt;&lt;/div&gt;&lt;/div&gt;` : &#x27;&#x27;);
     }
 
+
+    /* Firebase 부모 페이지 연동 브리지: iframe 내부 문제/정답/재생 이벤트를 정확히 동기화 */
+    let songquizBridgeApplying = false;
+
+    function cloneSongQuizData(value){
+      try{return JSON.parse(JSON.stringify(value));}catch(e){return value;}
+    }
+
+    function exportSongQuizState(){
+      return {
+        mode,
+        current:cloneSongQuizData(current),
+        currentMix:cloneSongQuizData(currentMix),
+        used:Array.from(used || []),
+        round,
+        activePlaylistKey,
+        ttsIndex,
+        answerVisible:document.getElementById(&#x27;answerBox&#x27;)?.classList.contains(&#x27;show&#x27;) || false,
+        questionNo:document.getElementById(&#x27;questionNo&#x27;)?.textContent || &#x27;&#x27;,
+        questionHint:document.getElementById(&#x27;questionHint&#x27;)?.textContent || &#x27;&#x27;,
+        overlayMode:document.getElementById(&#x27;overlayMode&#x27;)?.textContent || &#x27;&#x27;,
+        overlayQ:document.getElementById(&#x27;overlayQ&#x27;)?.textContent || &#x27;&#x27;,
+        overlayHint:document.getElementById(&#x27;overlayHint&#x27;)?.textContent || &#x27;&#x27;,
+        overlayAnswer:document.getElementById(&#x27;overlayAnswer&#x27;)?.innerHTML || &#x27;&#x27;
+      };
+    }
+
+    function postSongQuizRealtime(eventType, payload={}){
+      if(songquizBridgeApplying) return;
+      try{
+        parent.postMessage({
+          source:&#x27;kammon-songquiz&#x27;,
+          kind:&#x27;state&#x27;,
+          state:exportSongQuizState(),
+          event:eventType ? {id:`${Date.now()}-${Math.random().toString(36).slice(2,8)}`, type:eventType, payload, createdAt:Date.now()} : null
+        }, &#x27;*&#x27;);
+      }catch(e){}
+    }
+
+    function applySongQuizState(data){
+      if(!data || typeof data !== &#x27;object&#x27;) return;
+      songquizBridgeApplying = true;
+      try{
+        activePlaylistKey = data.activePlaylistKey || activePlaylistKey;
+        if(data.mode &amp;&amp; data.mode !== mode){ originalSetMode(data.mode); }
+        mode = data.mode || mode;
+        current = data.current ? cloneSongQuizData(data.current) : null;
+        currentMix = Array.isArray(data.currentMix) ? cloneSongQuizData(data.currentMix) : [];
+        used = new Set(Array.isArray(data.used) ? data.used : []);
+        round = Number(data.round || 0);
+        if(typeof data.ttsIndex === &#x27;number&#x27;) ttsIndex = data.ttsIndex;
+
+        document.querySelectorAll(&#x27;.tab&#x27;).forEach(b=&gt;b.classList.toggle(&#x27;active&#x27;,b.dataset.mode===mode));
+        document.getElementById(&#x27;oneControls&#x27;).style.display = mode===&#x27;one&#x27;?&#x27;grid&#x27;:&#x27;none&#x27;;
+        document.getElementById(&#x27;mixControls&#x27;).style.display = mode===&#x27;mix&#x27;?&#x27;grid&#x27;:&#x27;none&#x27;;
+        document.getElementById(&#x27;ttsControls&#x27;).style.display = mode===&#x27;tts&#x27;?&#x27;grid&#x27;:&#x27;none&#x27;;
+        document.getElementById(&#x27;singlePlayerBox&#x27;).style.display = mode===&#x27;mix&#x27;?&#x27;none&#x27;:&#x27;block&#x27;;
+        document.getElementById(&#x27;mixPlayerBox&#x27;).style.display = mode===&#x27;mix&#x27;?&#x27;grid&#x27;:&#x27;none&#x27;;
+        document.getElementById(&#x27;modeTitle&#x27;).textContent = mode===&#x27;one&#x27;?&#x27;1초 듣고 맞추기&#x27;:mode===&#x27;mix&#x27;?&#x27;3곡 섞어 맞추기&#x27;:&#x27;가사 TTS 맞추기&#x27;;
+        document.getElementById(&#x27;stageMode&#x27;).textContent = mode===&#x27;one&#x27;?&#x27;MODE 01&#x27;:mode===&#x27;mix&#x27;?&#x27;MODE 02&#x27;:&#x27;MODE 03&#x27;;
+
+        if(data.questionNo) document.getElementById(&#x27;questionNo&#x27;).textContent = data.questionNo;
+        else document.getElementById(&#x27;questionNo&#x27;).textContent = round ? `Q${round}` : &#x27;READY&#x27;;
+        if(data.questionHint) document.getElementById(&#x27;questionHint&#x27;).textContent = data.questionHint;
+
+        if(currentMix.length) setAnswer(currentMix);
+        else if(current) setAnswer(current);
+
+        const answerBox = document.getElementById(&#x27;answerBox&#x27;);
+        if(answerBox) answerBox.classList.toggle(&#x27;show&#x27;, !!data.answerVisible);
+        updateStats();
+        updateOverlay(!!data.answerVisible);
+
+        if(data.overlayMode) document.getElementById(&#x27;overlayMode&#x27;).textContent = data.overlayMode;
+        if(data.overlayQ) document.getElementById(&#x27;overlayQ&#x27;).textContent = data.overlayQ;
+        if(data.overlayHint) document.getElementById(&#x27;overlayHint&#x27;).textContent = data.overlayHint;
+        if(data.overlayAnswer) document.getElementById(&#x27;overlayAnswer&#x27;).innerHTML = data.overlayAnswer;
+
+        if(mode === &#x27;one&#x27; &amp;&amp; current) loadSongToPlayer(current, player, current.playAt || ONE_SECOND_START_SEC);
+        if(mode === &#x27;mix&#x27; &amp;&amp; currentMix.length) prepareMixPlayers();
+      }catch(e){
+        console.warn(&#x27;songquiz apply state failed&#x27;, e);
+      }
+      songquizBridgeApplying = false;
+    }
+
+    function applySongQuizEvent(event){
+      if(!event || !event.type) return;
+      songquizBridgeApplying = true;
+      try{
+        if(event.type === &#x27;playOneSecond&#x27;) originalPlayOneSecond();
+        else if(event.type === &#x27;playTwentySeconds&#x27;) originalPlayTwentySeconds();
+        else if(event.type === &#x27;playMix&#x27;) originalPlayMix();
+        else if(event.type === &#x27;playMixHint&#x27;) originalPlayMixHint();
+        else if(event.type === &#x27;speakLyrics&#x27;) originalSpeakLyrics();
+        else if(event.type === &#x27;stopAll&#x27;) originalStopAll();
+      }catch(e){
+        console.warn(&#x27;songquiz apply event failed&#x27;, e);
+      }
+      songquizBridgeApplying = false;
+    }
+
+    const originalSetMode = setMode;
+    const originalNewOneQuestion = newOneQuestion;
+    const originalPlayOneSecond = playOneSecond;
+    const originalPlayTwentySeconds = playTwentySeconds;
+    const originalNewMixQuestion = newMixQuestion;
+    const originalPlayMix = playMix;
+    const originalPlayMixHint = playMixHint;
+    const originalNewTtsQuestion = newTtsQuestion;
+    const originalSpeakLyrics = speakLyrics;
+    const originalShowAnswer = showAnswer;
+    const originalHideAnswer = hideAnswer;
+    const originalStopAll = stopAll;
+    const originalResetUsed = resetUsed;
+
+    setMode = function(next){ originalSetMode(next); postSongQuizRealtime(&#x27;setMode&#x27;, {mode:next}); };
+    newOneQuestion = function(){ originalNewOneQuestion(); postSongQuizRealtime(&#x27;newOneQuestion&#x27;); };
+    playOneSecond = function(){ originalPlayOneSecond(); postSongQuizRealtime(&#x27;playOneSecond&#x27;); };
+    playTwentySeconds = function(){ originalPlayTwentySeconds(); postSongQuizRealtime(&#x27;playTwentySeconds&#x27;); };
+    newMixQuestion = function(){ originalNewMixQuestion(); postSongQuizRealtime(&#x27;newMixQuestion&#x27;); };
+    playMix = function(){ originalPlayMix(); postSongQuizRealtime(&#x27;playMix&#x27;); };
+    playMixHint = function(){ originalPlayMixHint(); postSongQuizRealtime(&#x27;playMixHint&#x27;); };
+    newTtsQuestion = function(){ originalNewTtsQuestion(); postSongQuizRealtime(&#x27;newTtsQuestion&#x27;); };
+    speakLyrics = function(){ originalSpeakLyrics(); postSongQuizRealtime(&#x27;speakLyrics&#x27;); };
+    showAnswer = function(){ originalShowAnswer(); postSongQuizRealtime(&#x27;showAnswer&#x27;); };
+    hideAnswer = function(){ originalHideAnswer(); postSongQuizRealtime(&#x27;hideAnswer&#x27;); };
+    stopAll = function(){ originalStopAll(); postSongQuizRealtime(&#x27;stopAll&#x27;); };
+    resetUsed = function(){ originalResetUsed(); postSongQuizRealtime(&#x27;resetUsed&#x27;); };
+
+    window.SONGQUIZ_BRIDGE = {
+      exportState:exportSongQuizState,
+      applyState:applySongQuizState,
+      applyEvent:applySongQuizEvent
+    };
+
     updateStats(); renderList(); updateOverlay(false);
   &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-" allow="autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>
+&quot; allow=&quot;autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>
       </div>
     </section>
     <section class="content-view" data-view="mafia">
@@ -3846,6 +4008,86 @@ body.overlay-mode .stage{
 </div>
 
 <script>
+(function(){
+  window.KAMMON_DEPLOY_BASE_URL = 'https://contents-mu.vercel.app/';
+  const params = new URLSearchParams(location.search);
+  const aliases = {
+    star:'starmarble', marble:'starmarble', starmarble:'starmarble',
+    balance:'balance', balanceDebate:'balance', debated:'balance',
+    mafia:'mafia',
+    song:'songquiz', music:'songquiz', songquiz:'songquiz',
+    movie:'moviequote', quote:'moviequote', moviequote:'moviequote',
+    anonymous:'anonymouschat', chat:'anonymouschat', anonymouschat:'anonymouschat'
+  };
+  const rawTarget = String(params.get('target') || params.get('tab') || params.get('overlay') || 'starmarble').trim();
+  const normalizedTarget = aliases[rawTarget] || aliases[rawTarget.toLowerCase()] || rawTarget.toLowerCase() || 'starmarble';
+  window.KAMMON_OVERLAY_VIEW = params.get('view') === 'overlay' || params.get('mode') === 'overlay' || params.has('overlay');
+  window.KAMMON_OVERLAY_TARGET = normalizedTarget;
+})();
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function(){
+  const firebaseConfig = {
+    apiKey: "AIzaSyDG_A78a87l_vc3BdbAk-mX5DmoHOzMWNA",
+    authDomain: "jddcontens.firebaseapp.com",
+    databaseURL: "https://jddcontens-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "jddcontens",
+    storageBucket: "jddcontens.firebasestorage.app",
+    messagingSenderId: "173723966783",
+    appId: "1:173723966783:web:ccd54e5417327b2600478a",
+    measurementId: "G-5WCBP7YDRW"
+  };
+
+  const params = new URLSearchParams(location.search);
+  const safeRoom = (params.get('room') || localStorage.getItem('KAMMON_ROOM') || 'live')
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 40) || 'live';
+  window.KAMMON_ROOM = safeRoom;
+  try{ localStorage.setItem('KAMMON_ROOM', safeRoom); }catch(e){}
+
+  function normalizeRealtimePath(path){
+    const raw = String(path || '').replace(/^\/+/, '');
+    if(!raw) return `rooms/${safeRoom}`;
+    if(raw.startsWith(`rooms/${safeRoom}/`) || raw === `rooms/${safeRoom}`) return raw;
+    if(raw.startsWith('rooms/')) return raw;
+    return `rooms/${safeRoom}/${raw}`;
+  }
+
+  function blockedOverlayWrite(action, path){
+    if(window.KAMMON_OVERLAY_VIEW){
+      console.warn(`[KAMMON_REALTIME] overlay read-only: ${action} blocked`, path);
+      return true;
+    }
+    return false;
+  }
+
+  try{
+    if(!window.firebase.apps.length) window.firebase.initializeApp(firebaseConfig);
+    const database = window.firebase.database();
+    window.KAMMON_REALTIME = {
+      ready:true,
+      room:safeRoom,
+      db:database,
+      path:normalizeRealtimePath,
+      ref:(path)=>database.ref(normalizeRealtimePath(path)),
+      set:(path, value)=> blockedOverlayWrite('set', path) ? Promise.resolve(false) : database.ref(normalizeRealtimePath(path)).set(value),
+      update:(path, value)=> blockedOverlayWrite('update', path) ? Promise.resolve(false) : database.ref(normalizeRealtimePath(path)).update(value),
+      remove:(path)=> blockedOverlayWrite('remove', path) ? Promise.resolve(false) : database.ref(normalizeRealtimePath(path)).remove(),
+      listen:(path, callback)=>database.ref(normalizeRealtimePath(path)).on('value', snapshot=>callback(snapshot.val())),
+      off:(path)=>database.ref(normalizeRealtimePath(path)).off()
+    };
+    console.log(`🔥 Firebase Realtime Connected / room=${safeRoom} / overlay=${!!window.KAMMON_OVERLAY_VIEW}`);
+  }catch(error){
+    window.KAMMON_REALTIME = {ready:false, room:safeRoom, error};
+    console.error('Firebase Realtime 연결 실패:', error);
+  }
+})();
+</script>
+
+<script>
 (() => {
   const COLORS = ['#e33434','#2478ff','#17b956','#f8b222','#b75cff','#00c7d9'];
 
@@ -4005,6 +4247,64 @@ body.overlay-mode .stage{
   };
 
   const $ = (id) => document.getElementById(id);
+
+  const REALTIME_PATH = 'overlays/starmarble/state';
+  const REALTIME_EVENT_PATH = 'overlays/starmarble/event';
+  let realtimeApplying = false;
+  let realtimeEventApplying = false;
+  let lastRealtimeEventId = '';
+
+  function cloneStateData(data){
+    return JSON.parse(JSON.stringify(data));
+  }
+
+  function applyRealtimeState(data){
+    if(!data || typeof data !== 'object') return;
+    realtimeApplying = true;
+    Object.assign(state, cloneStateData(data));
+    normalizeSavedTeams();
+    if(state.started && $('setup')) $('setup').style.display = 'none';
+    renderAll();
+    realtimeApplying = false;
+  }
+
+  function makeRealtimeEventId(){
+    return `${Date.now()}-${Math.random().toString(36).slice(2,9)}`;
+  }
+
+  function sendRealtimeEvent(type, payload={}){
+    if(realtimeApplying || realtimeEventApplying) return;
+    if(!window.KAMMON_REALTIME?.ready) return;
+    window.KAMMON_REALTIME.set(REALTIME_EVENT_PATH, {
+      id:makeRealtimeEventId(),
+      type,
+      payload,
+      createdAt:Date.now()
+    });
+  }
+
+  function applyRealtimeEvent(event){
+    if(!event || !event.id || event.id === lastRealtimeEventId) return;
+    lastRealtimeEventId = event.id;
+    realtimeEventApplying = true;
+
+    const payload = event.payload || {};
+    if(event.type === 'slot'){
+      runSlotVisual(payload.type || '추첨', payload.repeated || [], payload.pick || '', null, false);
+    }else if(event.type === 'toast'){
+      showToastVisual(payload.type || '', payload.title || '', payload.actions || [], payload.desc || '', false);
+    }else if(event.type === 'hidePop'){
+      hidePopVisual();
+    }
+
+    realtimeEventApplying = false;
+  }
+
+  function initRealtimeState(){
+    if(!window.KAMMON_REALTIME?.ready) return;
+    window.KAMMON_REALTIME.listen(REALTIME_PATH, applyRealtimeState);
+    window.KAMMON_REALTIME.listen(REALTIME_EVENT_PATH, applyRealtimeEvent);
+  }
 
   function getLayout(){
     const app = $('app');
@@ -4541,11 +4841,17 @@ body.overlay-mode .stage{
   }
 
   function runSlot(type, list, callback){
-    playRouletteSound();
     const pick = list[Math.floor(Math.random()*list.length)];
     const repeated = [];
     for(let i=0;i<28;i++) repeated.push(list[i % list.length]);
     repeated.push(pick);
+
+    sendRealtimeEvent('slot', {type, repeated, pick});
+    runSlotVisual(type, repeated, pick, callback, true);
+  }
+
+  function runSlotVisual(type, repeated, pick, callback, bindActions){
+    playRouletteSound();
 
     $('eventType').textContent = type;
     $('eventTitle').textContent = '선택중...';
@@ -4566,13 +4872,25 @@ body.overlay-mode .stage{
 
     setTimeout(()=>{
       $('eventTitle').textContent = pick;
-      $('eventDesc').textContent = '결과를 확인해주세요.';
-      $('eventActions').innerHTML = buttonHtml([{text:'확인', cls:'green', fn:()=>callback(pick)}]);
-      bindActionButtons([{text:'확인', cls:'green', fn:()=>callback(pick)}]);
+      $('eventDesc').textContent = bindActions ? '결과를 확인해주세요.' : '관리자 화면의 진행 결과를 기다려주세요.';
+
+      if(bindActions && callback){
+        const actions = [{text:'확인', cls:'green', fn:()=>callback(pick)}];
+        $('eventActions').innerHTML = buttonHtml(actions);
+        bindActionButtons(actions);
+      }else{
+        $('eventActions').innerHTML = '<button class="btn dark" disabled>송출 동기화 화면</button>';
+      }
     },2350);
   }
 
   function showToast(type, title, actions=[], desc=''){
+    const actionMeta = actions.map(a=>({text:a.text, cls:a.cls || ''}));
+    sendRealtimeEvent('toast', {type, title, desc, actions:actionMeta});
+    showToastVisual(type, title, actions, desc, true);
+  }
+
+  function showToastVisual(type, title, actions=[], desc='', bindActions=true){
     stopRouletteSound();
     $('slot').classList.remove('show');
     $('eventType').textContent = type;
@@ -4580,7 +4898,15 @@ body.overlay-mode .stage{
     $('eventDesc').textContent = desc;
     $('eventActions').innerHTML = buttonHtml(actions);
     $('eventPop').classList.add('show');
-    bindActionButtons(actions);
+
+    if(bindActions){
+      bindActionButtons(actions);
+    }else{
+      [...document.querySelectorAll('[data-action]')].forEach(btn=>{
+        btn.disabled = true;
+        btn.title = '송출 동기화 화면에서는 조작하지 않습니다.';
+      });
+    }
   }
 
   function buttonHtml(actions){
@@ -4594,6 +4920,11 @@ body.overlay-mode .stage{
   }
 
   function hidePop(){
+    sendRealtimeEvent('hidePop', {});
+    hidePopVisual();
+  }
+
+  function hidePopVisual(){
     stopRouletteSound();
     $('eventPop').classList.remove('show');
   }
@@ -4613,11 +4944,17 @@ body.overlay-mode .stage{
   function resetGame(){
     if(!confirm('초기화할까?')) return;
     localStorage.removeItem('jurumabulOverlayState');
+    if(window.KAMMON_REALTIME?.ready){
+      window.KAMMON_REALTIME.remove(REALTIME_PATH);
+    }
     location.reload();
   }
 
   function save(){
     localStorage.setItem('jurumabulOverlayState', JSON.stringify(state));
+    if(!realtimeApplying && window.KAMMON_REALTIME?.ready){
+      window.KAMMON_REALTIME.set(REALTIME_PATH, cloneStateData(state));
+    }
   }
 
   function load(){
@@ -4646,6 +4983,7 @@ body.overlay-mode .stage{
 
   function init(){
     initTabs();
+    initRealtimeState();
     renderBoard();
     makeTeamInputs();
 
@@ -4715,6 +5053,10 @@ body.overlay-mode .stage{
   };
 
   let state = loadState() || structuredCloneSafe(DEFAULT_STATE);
+  state.live = !!state.live;
+
+  const REALTIME_PATH = 'overlays/balance/state';
+  let realtimeApplying = false;
 
   function $(id){ return document.getElementById(id); }
   function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -4748,6 +5090,33 @@ body.overlay-mode .stage{
   }
   function saveState(){
     try{ localStorage.setItem('balanceDebateState', JSON.stringify(state)); }catch(e){}
+    if(!realtimeApplying && window.KAMMON_REALTIME?.ready){
+      window.KAMMON_REALTIME.set(REALTIME_PATH, structuredCloneSafe(state));
+    }
+  }
+
+  function applyRealtimeState(data){
+    if(!data || typeof data !== 'object') return;
+    realtimeApplying = true;
+    state = Object.assign(structuredCloneSafe(DEFAULT_STATE), data, {
+      counts:Object.assign({}, data.counts || {}),
+      managers:Object.assign(structuredCloneSafe(DEFAULT_STATE).managers, data.managers || {})
+    });
+    state.managerCount = clampManagerCount(state.managerCount);
+    state.live = !!state.live;
+    normalizeManagers(false);
+    renderPickers();
+    renderTopics();
+    renderManagerAssignments();
+    if(state.live) $('balanceDebate')?.classList.add('is-live');
+    else $('balanceDebate')?.classList.remove('is-live');
+    renderLive();
+    realtimeApplying = false;
+  }
+
+  function initRealtimeState(){
+    if(!window.KAMMON_REALTIME?.ready) return;
+    window.KAMMON_REALTIME.listen(REALTIME_PATH, applyRealtimeState);
   }
 
   function commitBalanceState(){
@@ -4957,12 +5326,15 @@ body.overlay-mode .stage{
     state.managerCount = clampManagerCount($('balanceManagerCountSelect')?.value || state.managerCount);
     normalizeManagers(true);
     state.topicIndex = Math.min(state.topicIndex, state.topics.length - 1);
+    state.live = true;
     saveState();
     $('balanceDebate')?.classList.add('is-live');
     renderLive();
   }
 
   function backSetup(){
+    state.live = false;
+    saveState();
     $('balanceDebate')?.classList.remove('is-live');
     renderPickers();
     renderTopics();
@@ -4978,7 +5350,9 @@ body.overlay-mode .stage{
   function resetAll(){
     if(!confirm('밸런스토론 세팅을 전체 초기화할까?')) return;
     state = structuredCloneSafe(DEFAULT_STATE);
+    state.live = false;
     localStorage.removeItem('balanceDebateState');
+    saveState();
     renderPickers();
     renderTopics();
     backSetup();
@@ -4998,6 +5372,7 @@ body.overlay-mode .stage{
 
   function init(){
     if(!$('balanceDebate')) return;
+    initRealtimeState();
     renderPickers();
     renderTopics();
     renderLive();
@@ -5060,7 +5435,7 @@ body.overlay-mode .stage{
     doctor:{label:'의사', badge:'회복'}
   };
 
-  const state = {
+  const DEFAULT_STATE = {
     live:false,
     host:'',
     participants:MAFIA_MEMBERS.map(member => member.name),
@@ -5069,7 +5444,44 @@ body.overlay-mode .stage{
     dead:{}
   };
 
+  const state = loadState() || structuredCloneSafe(DEFAULT_STATE);
+
+  const REALTIME_PATH = 'overlays/mafia/state';
+  let realtimeApplying = false;
+
   function $(id){ return document.getElementById(id); }
+  function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem('mafiaGameState');
+      if(!raw) return null;
+      return Object.assign(structuredCloneSafe(DEFAULT_STATE), JSON.parse(raw));
+    }catch(e){ return null; }
+  }
+  function saveState(){
+    try{ localStorage.setItem('mafiaGameState', JSON.stringify(state)); }catch(e){}
+    if(!realtimeApplying && window.KAMMON_REALTIME?.ready){
+      window.KAMMON_REALTIME.set(REALTIME_PATH, structuredCloneSafe(state));
+    }
+  }
+  function commitMafiaState(){
+    saveState();
+    render();
+  }
+  function applyRealtimeState(data){
+    if(!data || typeof data !== 'object') return;
+    realtimeApplying = true;
+    Object.keys(state).forEach(key=>delete state[key]);
+    Object.assign(state, structuredCloneSafe(DEFAULT_STATE), structuredCloneSafe(data));
+    normalizeParticipants();
+    syncSelectsFromState();
+    render();
+    realtimeApplying = false;
+  }
+  function initRealtimeState(){
+    if(!window.KAMMON_REALTIME?.ready) return;
+    window.KAMMON_REALTIME.listen(REALTIME_PATH, applyRealtimeState);
+  }
 
   function clampNumber(value, min, max, fallback){
     const n = Number.parseInt(value, 10);
@@ -5289,13 +5701,13 @@ body.overlay-mode .stage{
     });
 
     syncSelectsFromState();
-    render();
+    commitMafiaState();
   }
 
   function startGame(){
     if(!validateRoles(true)) return;
     state.live = true;
-    render();
+    commitMafiaState();
   }
 
   function resetGame(){
@@ -5306,18 +5718,18 @@ body.overlay-mode .stage{
     state.roles = previousHost ? {[previousHost]:'host'} : {};
     state.dead = {};
     syncSelectsFromState();
-    render();
+    commitMafiaState();
   }
 
   function backToSetup(){
     state.live = false;
     syncSelectsFromState();
-    render();
+    commitMafiaState();
   }
 
   function toggleDead(name){
     state.dead[name] = !state.dead[name];
-    render();
+    commitMafiaState();
   }
 
   function roleClass(role){
@@ -5422,6 +5834,7 @@ body.overlay-mode .stage{
   }
 
   function bind(){
+    initRealtimeState();
     normalizeParticipants();
     renderParticipantChecks();
     fillHostSelect();
@@ -5438,7 +5851,7 @@ body.overlay-mode .stage{
       state.host = $('mafiaHostSelect')?.value || '';
       if(state.host && !state.participants.includes(state.host)) state.participants.push(state.host);
       readRoleSelects();
-      render();
+      commitMafiaState();
     });
 
     ['mafiaCountInput','mafiaPoliceCountInput','mafiaDoctorCountInput'].forEach(id => {
@@ -5446,7 +5859,7 @@ body.overlay-mode .stage{
         applyCountInputsToState();
         renderRoleSelects();
         readRoleSelects();
-        render();
+        commitMafiaState();
       });
     });
 
@@ -5461,7 +5874,7 @@ body.overlay-mode .stage{
       normalizeParticipants();
       readRoleSelects();
       syncSelectsFromState();
-      render();
+      commitMafiaState();
     });
 
     $('mafiaSelectAllBtn')?.addEventListener('click', () => {
@@ -5469,7 +5882,7 @@ body.overlay-mode .stage{
       normalizeParticipants();
       readRoleSelects();
       syncSelectsFromState();
-      render();
+      commitMafiaState();
     });
 
     $('mafiaClearAllBtn')?.addEventListener('click', () => {
@@ -5478,13 +5891,13 @@ body.overlay-mode .stage{
       normalizeParticipants();
       readRoleSelects();
       syncSelectsFromState();
-      render();
+      commitMafiaState();
     });
 
     $('mafiaRoleSelectGrid')?.addEventListener('change', event => {
       if(event.target.matches('.mafia-role-select')){
         readRoleSelects();
-        render();
+        commitMafiaState();
       }
     });
 
@@ -5504,9 +5917,36 @@ body.overlay-mode .stage{
 <script>
 (function(){
   const MOVIE_QUOTES = [{"no": 1, "time": "0:15", "start": 15, "title": "극한직업", "quote": "지금까지 이런 맛은 없었다", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EA%B7%B9%ED%95%9C%EC%A7%81%EC%97%85%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 2, "time": "0:30", "start": 30, "title": "기생충", "quote": "너는 다 계획이 있구나", "poster": "https://upload.wikimedia.org/wikipedia/ko/thumb/6/60/%EA%B8%B0%EC%83%9D%EC%B6%A9_%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg/250px-%EA%B8%B0%EC%83%9D%EC%B6%A9_%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 3, "time": "0:45", "start": 45, "title": "엑시트", "quote": "따따따 따따!", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EC%97%91%EC%8B%9C%ED%8A%B8%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 4, "time": "1:05", "start": 65, "title": "베테랑", "quote": "어이가 없네", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B2%A0%ED%85%8C%EB%9E%91%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 5, "time": "1:25", "start": 85, "title": "범죄도시", "quote": "니 내 누군지 아니?", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B2%94%EC%A3%84%EB%8F%84%EC%8B%9C%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 6, "time": "1:55", "start": 115, "title": "내부자들", "quote": "모히또 가서 몰디브 한잔", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%82%B4%EB%B6%80%EC%9E%90%EB%93%A4%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 7, "time": "2:28", "start": 148, "title": "7번방의 선물", "quote": "예승이 콩 먹어", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/7%EB%B2%88%EB%B0%A9%EC%9D%98%20%EC%84%A0%EB%AC%BC%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 8, "time": "2:51", "start": 171, "title": "보이스", "quote": "전화 끊지 마세요", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B3%B4%EC%9D%B4%EC%8A%A4%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 9, "time": "3:14", "start": 194, "title": "도둑들", "quote": "씹던 껌입니다", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%8F%84%EB%91%91%EB%93%A4%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 10, "time": "3:32", "start": 212, "title": "범죄와의 전쟁", "quote": "살아있네", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B2%94%EC%A3%84%EC%99%80%EC%9D%98%20%EC%A0%84%EC%9F%81%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 11, "time": "4:04", "start": 244, "title": "써니", "quote": "써니!", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EC%8D%A8%EB%8B%88%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 12, "time": "6:04", "start": 364, "title": "암수살인", "quote": "일곱 명 더 있다", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EC%95%94%EC%88%98%EC%82%B4%EC%9D%B8%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 13, "time": "7:04", "start": 424, "title": "신세계", "quote": "드루와", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EC%8B%A0%EC%84%B8%EA%B3%84%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 14, "time": "7:23", "start": 443, "title": "부당거래", "quote": "호의가 계속되면 권리인 줄 알아요", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%EB%B6%80%EB%8B%B9%EA%B1%B0%EB%9E%98%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}, {"no": 15, "time": "8:55", "start": 535, "title": "해바라기", "quote": "꼭 그렇게 다 가져가야만 속이 후련했냐", "poster": "https://ko.wikipedia.org/wiki/Special:Redirect/file/%ED%95%B4%EB%B0%94%EB%9D%BC%EA%B8%B0%20%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg"}];
+  const REALTIME_STATE_PATH = 'overlays/moviequote/state';
+  const REALTIME_EVENT_PATH = 'overlays/moviequote/event';
   let idx = 0;
+  let movieRealtimeApplying = false;
+  let lastMovieEventId = '';
+
   function el(id){ return document.getElementById(id); }
-  function setMovie(i, autoplay){
+  function makeEventId(){ return `${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
+  function answerVisible(){ return el('movieQuoteAnswer')?.classList.contains('show') || false; }
+
+  function movieState(){
+    return {idx, answerVisible:answerVisible(), updatedAt:Date.now()};
+  }
+
+  function commitMovieState(eventType='', payload={}){
+    if(movieRealtimeApplying || !window.KAMMON_REALTIME?.ready) return;
+    window.KAMMON_REALTIME.set(REALTIME_STATE_PATH, movieState());
+    if(eventType){
+      window.KAMMON_REALTIME.set(REALTIME_EVENT_PATH, {
+        id:makeEventId(), type:eventType, payload, createdAt:Date.now()
+      });
+    }
+  }
+
+  function setAnswerVisible(show){
+    const a = el('movieQuoteAnswer');
+    if(a) a.classList.toggle('show', !!show);
+  }
+
+  function setMovie(i, autoplay=false, skipCommit=false){
     idx = (i + MOVIE_QUOTES.length) % MOVIE_QUOTES.length;
     const m = MOVIE_QUOTES[idx];
 
@@ -5518,8 +5958,7 @@ body.overlay-mode .stage{
     if(el('movieQuoteTime')) el('movieQuoteTime').textContent = `영상 위치 ${m.time}`;
     if(el('movieQuotePosterFallback')) el('movieQuotePosterFallback').textContent = m.title;
 
-    const answer = el('movieQuoteAnswer');
-    if(answer) answer.classList.remove('show');
+    setAnswerVisible(false);
 
     const poster = el('movieQuotePoster');
     if(poster){
@@ -5534,17 +5973,43 @@ body.overlay-mode .stage{
     if(player){
       player.src = `https://www.youtube.com/embed/xQ9skQV3-DU?start=${m.start}&end=${m.start + 5}&rel=0&playsinline=1${autoplay ? '&autoplay=1' : ''}`;
     }
+
+    if(!skipCommit) commitMovieState(autoplay ? 'play' : 'select', {idx});
+  }
+
+  function applyMovieState(data){
+    if(!data || typeof data !== 'object') return;
+    movieRealtimeApplying = true;
+    setMovie(Number(data.idx || 0), false, true);
+    setAnswerVisible(!!data.answerVisible);
+    movieRealtimeApplying = false;
+  }
+
+  function applyMovieEvent(event){
+    if(!event || !event.id || event.id === lastMovieEventId) return;
+    lastMovieEventId = event.id;
+    const payload = event.payload || {};
+    movieRealtimeApplying = true;
+    if(event.type === 'play') setMovie(Number(payload.idx ?? idx), true, true);
+    movieRealtimeApplying = false;
+  }
+
+  function initRealtime(){
+    if(!window.KAMMON_REALTIME?.ready) return;
+    window.KAMMON_REALTIME.listen(REALTIME_STATE_PATH, applyMovieState);
+    window.KAMMON_REALTIME.listen(REALTIME_EVENT_PATH, applyMovieEvent);
   }
 
   function init(){
     document.querySelectorAll('.moviequote-choice').forEach(btn=>{
       btn.addEventListener('click', ()=>setMovie(Number(btn.dataset.movieIdx), false));
     });
-    if(el('movieQuotePlayBtn')) el('movieQuotePlayBtn').onclick = ()=>setMovie(idx, true);
-    if(el('movieQuoteAnswerBtn')) el('movieQuoteAnswerBtn').onclick = ()=>{ const a=el('movieQuoteAnswer'); if(a) a.classList.add('show'); };
-    if(el('movieQuoteHideBtn')) el('movieQuoteHideBtn').onclick = ()=>{ const a=el('movieQuoteAnswer'); if(a) a.classList.remove('show'); };
+    if(el('movieQuotePlayBtn')) el('movieQuotePlayBtn').onclick = ()=>{ setMovie(idx, true); };
+    if(el('movieQuoteAnswerBtn')) el('movieQuoteAnswerBtn').onclick = ()=>{ setAnswerVisible(true); commitMovieState('showAnswer', {idx}); };
+    if(el('movieQuoteHideBtn')) el('movieQuoteHideBtn').onclick = ()=>{ setAnswerVisible(false); commitMovieState('hideAnswer', {idx}); };
     if(el('movieQuoteNextBtn')) el('movieQuoteNextBtn').onclick = ()=>setMovie(idx + 1, true);
-    setMovie(0, false);
+    setMovie(0, false, true);
+    initRealtime();
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
@@ -5552,6 +6017,109 @@ body.overlay-mode .stage{
 })();
 </script>
 
+
+
+<script>
+(function(){
+  const SONG_STATE_PATH = 'overlays/songquiz/state';
+  const SONG_EVENT_PATH = 'overlays/songquiz/event';
+  let songRealtimeApplying = false;
+  let lastSongEventId = '';
+
+  function getSongFrame(){ return document.querySelector('.songquiz-embed-frame'); }
+  function getSongBridge(){
+    try{return getSongFrame()?.contentWindow?.SONGQUIZ_BRIDGE || null;}catch(e){return null;}
+  }
+
+  function sendToSongFrame(kind, data){
+    const bridge = getSongBridge();
+    if(!bridge) return false;
+    songRealtimeApplying = true;
+    try{
+      if(kind === 'state') bridge.applyState(data);
+      if(kind === 'event') bridge.applyEvent(data);
+    }catch(e){ console.warn('songquiz frame sync failed', e); }
+    songRealtimeApplying = false;
+    return true;
+  }
+
+
+  function stripHtml(value){
+    const box = document.createElement('div');
+    box.innerHTML = String(value || '');
+    return box.textContent || box.innerText || '';
+  }
+
+  function updateSongObjectOverlay(data){
+    if(!data || typeof data !== 'object') return;
+    const modeEl = document.querySelector('.songquiz-object-mode');
+    const readyEl = document.querySelector('.songquiz-object-ready');
+    const descEl = document.querySelector('.songquiz-object-desc');
+    const answerSpan = document.querySelector('.songquiz-object-answer span');
+    if(modeEl) modeEl.textContent = data.overlayMode || (data.round ? `노래맞추기 ${data.round}번문제` : '노래맞추기 대기중');
+    if(readyEl) readyEl.textContent = data.overlayQ || data.questionNo || (data.round ? `Q${data.round}` : 'READY');
+    if(descEl) descEl.textContent = data.overlayHint || data.questionHint || '관리자 화면에서 문제를 시작하세요';
+    if(answerSpan){
+      let answer = '???';
+      if(data.answerVisible){
+        answer = stripHtml(data.overlayAnswer || '').replace(/^정답:\s*/,'').trim() || '???';
+      }
+      answerSpan.textContent = answer;
+    }
+  }
+
+  function bindSongFrameMessages(){
+    window.addEventListener('message', event=>{
+      const msg = event.data || {};
+      if(msg.source !== 'kammon-songquiz' || msg.kind !== 'state') return;
+      if(songRealtimeApplying || !window.KAMMON_REALTIME?.ready || window.KAMMON_OVERLAY_VIEW) return;
+      window.KAMMON_REALTIME.set(SONG_STATE_PATH, msg.state || {});
+      if(msg.event) window.KAMMON_REALTIME.set(SONG_EVENT_PATH, msg.event);
+    });
+  }
+
+  function listenSongRealtime(){
+    if(!window.KAMMON_REALTIME?.ready) return;
+    window.KAMMON_REALTIME.listen(SONG_STATE_PATH, data=>{
+      if(!data) return;
+      updateSongObjectOverlay(data);
+      sendToSongFrame('state', data);
+    });
+    window.KAMMON_REALTIME.listen(SONG_EVENT_PATH, event=>{
+      if(!event || !event.id || event.id === lastSongEventId) return;
+      lastSongEventId = event.id;
+      sendToSongFrame('event', event);
+    });
+  }
+
+  function initSongRealtimeBridge(){
+    bindSongFrameMessages();
+    listenSongRealtime();
+    const frame = getSongFrame();
+    if(frame){
+      frame.addEventListener('load', ()=>{
+        setTimeout(()=>{
+          try{
+            const bridge = getSongBridge();
+            if(bridge && window.KAMMON_REALTIME?.ready){
+              const current = bridge.exportState?.();
+              if(current){
+                updateSongObjectOverlay(current);
+                if(!window.KAMMON_OVERLAY_VIEW){
+                  window.KAMMON_REALTIME.set(SONG_STATE_PATH, current);
+                }
+              }
+            }
+          }catch(e){}
+        }, 700);
+      });
+    }
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSongRealtimeBridge);
+  else initSongRealtimeBridge();
+})();
+</script>
 
 <script>
 (function(){
@@ -5565,8 +6133,29 @@ body.overlay-mode .stage{
     balance:'밸런스토론'
   };
 
+  function normalizeOverlayTarget(value){
+    const raw = String(value || '').trim().toLowerCase();
+    const aliases = {
+      star:'starmarble', marble:'starmarble', starmarble:'starmarble',
+      balance:'balance', debated:'balance', balanceDebate:'balance',
+      mafia:'mafia',
+      song:'songquiz', music:'songquiz', songquiz:'songquiz',
+      movie:'moviequote', quote:'moviequote', moviequote:'moviequote',
+      anonymous:'anonymouschat', chat:'anonymouschat', anonymouschat:'anonymouschat'
+    };
+    return aliases[raw] || raw || 'starmarble';
+  }
+
+  function getDeployBaseUrl(){
+    const configured = String(window.KAMMON_DEPLOY_BASE_URL || 'https://contents-mu.vercel.app/').trim();
+    return configured.replace(/[?#].*$/, '').replace(/\/+$/, '') + '/';
+  }
+
   window.copyOverlayUrl = function(target){
-    const url = location.origin + location.pathname + '?view=overlay&target=' + encodeURIComponent(target);
+    target = normalizeOverlayTarget(target);
+    const base = getDeployBaseUrl();
+    const room = encodeURIComponent(window.KAMMON_ROOM || new URLSearchParams(location.search).get('room') || 'live');
+    const url = base + '?mode=overlay&tab=' + encodeURIComponent(target) + '&room=' + room;
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(url).then(()=>{
         alert((TARGET_LABELS[target] || target) + ' 오버레이 주소 복사 완료\n' + url);
@@ -5595,12 +6184,19 @@ body.overlay-mode .stage{
     setActiveTool(current);
   }
 
-  function applyOverlayView(){
+  function getOverlayTargetFromUrl(){
     const params = new URLSearchParams(location.search);
-    if(params.get('view') !== 'overlay') return;
+    const isOverlay = params.get('view') === 'overlay' || params.get('mode') === 'overlay' || params.has('overlay');
+    if(!isOverlay) return null;
+    return normalizeOverlayTarget(params.get('target') || params.get('tab') || params.get('overlay') || 'starmarble');
+  }
 
-    const target = params.get('target') || 'starmarble';
+  function applyOverlayView(){
+    const target = getOverlayTargetFromUrl();
+    if(!target) return;
 
+    window.KAMMON_OVERLAY_VIEW = true;
+    window.KAMMON_OVERLAY_TARGET = target;
     document.body.classList.add('broadcast','overlay-mode');
     document.body.setAttribute('data-overlay-target', target);
     document.documentElement.style.background = CHROMA_COLOR;
@@ -5610,6 +6206,7 @@ body.overlay-mode .stage{
       const isTarget = section.dataset.view === target;
       section.classList.toggle('active', isTarget);
       section.classList.toggle('overlay-active', isTarget);
+      section.style.display = isTarget ? 'block' : 'none';
     });
 
     document.querySelectorAll('.tab-btn').forEach(btn=>{
@@ -5625,6 +6222,11 @@ body.overlay-mode .stage{
       const el = document.querySelector('.mafia-game');
       if(el) el.classList.add('is-live');
     }
+
+    if(target === 'moviequote'){
+      const page = document.querySelector('.moviequote-page');
+      if(page) page.style.display = 'block';
+    }
   }
 
   function initOverlayTools(){
@@ -5637,6 +6239,25 @@ body.overlay-mode .stage{
   }else{
     initOverlayTools();
   }
+})();
+</script>
+
+<script>
+(function(){
+  window.checkKammonOverlaySync = function(){
+    const info = {
+      overlayView: !!window.KAMMON_OVERLAY_VIEW,
+      overlayTarget: window.KAMMON_OVERLAY_TARGET || null,
+      firebaseReady: !!window.KAMMON_REALTIME?.ready,
+      room: window.KAMMON_ROOM || window.KAMMON_REALTIME?.room || null,
+      deployBaseUrl: window.KAMMON_DEPLOY_BASE_URL || null,
+      realtimeBasePath: window.KAMMON_REALTIME?.path ? window.KAMMON_REALTIME.path('overlays') : null,
+      activeView: document.querySelector('.content-view.active')?.dataset.view || null,
+      songBridge: !!document.querySelector('.songquiz-embed-frame')?.contentWindow?.SONGQUIZ_BRIDGE
+    };
+    console.table(info);
+    return info;
+  };
 })();
 </script>
 

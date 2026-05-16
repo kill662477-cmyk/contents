@@ -9,7 +9,7 @@
   *{box-sizing:border-box}
 
   :root{
-    --chroma:#00ff00;
+    --chroma:#00FF00;
   }
   html,body{
     margin:0;
@@ -693,26 +693,8 @@
   body.transparent-preview .content-view{
     background:transparent !important;
   }
-
-  .capture-guide{
-    position:absolute;
-    right:10px;
-    top:10px;
-    z-index:210;
-    padding:7px 9px;
-    border-radius:8px;
-    background:rgba(0,0,0,.55);
-    color:#fff;
-    font-size:11px;
-    font-weight:900;
-    pointer-events:none;
-  }
-
-  .broadcast .capture-guide{
-    display:none;
-  }
-
-  .broadcast .setup,
+.broadcast
+.broadcast .setup,
   .broadcast .controls{
     display:none !important;
   }
@@ -2555,96 +2537,6 @@
       min-width:430px;
     }
   }
-
-
-
-
-
-/* === overlay view + per-tab copy buttons === */
-.overlay-copy-btn{
-  position:absolute;
-  right:14px;
-  top:14px;
-  z-index:999999;
-  border:0;
-  border-radius:10px;
-  padding:9px 13px;
-  background:#1f6dff;
-  color:#fff;
-  font-size:12px;
-  font-weight:1000;
-  cursor:pointer;
-  box-shadow:0 8px 18px rgba(0,0,0,.42);
-  pointer-events:auto;
-}
-.overlay-copy-btn:hover{filter:brightness(1.08)}
-body.overlay-mode{
-  margin:0 !important;
-  overflow:hidden !important;
-  background:#00FF00 !important;
-}
-body.overlay-mode .shell{
-  width:100vw !important;
-  height:100vh !important;
-  background:#00FF00 !important;
-}
-body.overlay-mode .side-tabs,
-body.overlay-mode .capture-guide,
-body.overlay-mode .overlay-copy-btn{
-  display:none !important;
-}
-body.overlay-mode .stage{
-  width:100vw !important;
-  height:100vh !important;
-  flex:1 1 100vw !important;
-  background:#00FF00 !important;
-}
-body.overlay-mode .content-view{
-  display:none !important;
-  inset:0 !important;
-  background:#00FF00 !important;
-}
-body.overlay-mode .content-view.overlay-active{
-  display:block !important;
-}
-body.overlay-mode .setup,
-body.overlay-mode .controls,
-body.overlay-mode .mafia-setup,
-body.overlay-mode .mafia-death-control-bar,
-body.overlay-mode .mafia-control-actions,
-body.overlay-mode .balance-setup,
-body.overlay-mode .balance-manager-panel,
-body.overlay-mode .balance-nav-panel,
-body.overlay-mode .moviequote-admin-panel{
-  display:none !important;
-}
-body.overlay-mode .mafia-live,
-body.overlay-mode .balance-live{
-  display:block !important;
-}
-body.overlay-mode .moviequote-page{
-  display:block !important;
-  background:#00FF00 !important;
-}
-body.overlay-mode .moviequote-stage{
-  position:absolute !important;
-  inset:0 !important;
-  width:100% !important;
-  height:100% !important;
-  background:#00FF00 !important;
-}
-body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-camera-zone,
-body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-floating-title{
-  display:none !important;
-}
-body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-phone-wrap{
-  position:absolute !important;
-  left:50% !important;
-  top:50% !important;
-  transform:translate(-50%,-50%) !important;
-}
-
-
 /* === exact songquiz object overlay === */
 body.overlay-mode[data-overlay-target="songquiz"] .songquiz-embed-wrap{
   position:fixed !important;
@@ -2711,6 +2603,167 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   color:#ffc928;
 }
 
+
+  /* 탭별 오버레이 도구: 캡처/오버레이 객체 밖(왼쪽 사이드바)에만 표시 */
+  .tab-overlay-tools{
+    display:none;
+    width:100%;
+    margin:-3px 0 5px;
+    padding:8px;
+    border-radius:10px;
+    background:rgba(255,255,255,.055);
+    border:1px solid rgba(255,255,255,.13);
+  }
+
+  .tab-overlay-tools.active{
+    display:block;
+  }
+
+  .tab-overlay-tools button{
+    width:100%;
+    border:0;
+    border-radius:8px;
+    padding:8px 8px;
+    background:#1f6dff;
+    color:#fff;
+    font-size:11px;
+    font-weight:1000;
+    cursor:pointer;
+    box-shadow:0 5px 12px rgba(0,0,0,.28);
+  }
+
+  .tab-overlay-tools .chroma-copy-label{
+    margin:7px 0 4px;
+    color:#9fb2d8;
+    font-size:10px;
+    font-weight:900;
+    line-height:1.2;
+  }
+
+  .tab-overlay-tools .chroma-copy-value{
+    width:100%;
+    height:28px;
+    border:1px solid rgba(255,255,255,.22);
+    border-radius:7px;
+    background:#00FF00;
+    color:#061133;
+    padding:0 7px;
+    font-size:12px;
+    font-weight:1000;
+    text-align:center;
+    user-select:text;
+    -webkit-user-select:text;
+    cursor:text;
+    outline:none;
+  }
+
+  body.overlay-mode .tab-overlay-tools{
+    display:none !important;
+  }
+
+  /* === overlay view + object/full-frame target system === */
+  body.overlay-mode{
+    margin:0 !important;
+    overflow:hidden !important;
+    background:#00FF00 !important;
+  }
+  body.overlay-mode .shell{
+    width:100vw !important;
+    height:100vh !important;
+    background:#00FF00 !important;
+  }
+  body.overlay-mode .side-tabs,
+  body.overlay-mode
+body.overlay-mode .stage{
+    width:100vw !important;
+    height:100vh !important;
+    flex:1 1 100vw !important;
+    background:#00FF00 !important;
+  }
+  body.overlay-mode .content-view{
+    display:none !important;
+    inset:0 !important;
+    background:#00FF00 !important;
+  }
+  body.overlay-mode .content-view.overlay-active{
+    display:block !important;
+  }
+  body.overlay-mode .setup,
+  body.overlay-mode .controls,
+  body.overlay-mode .mafia-setup,
+  body.overlay-mode .mafia-death-control-bar,
+  body.overlay-mode .mafia-control-actions,
+  body.overlay-mode .balance-setup,
+  body.overlay-mode .balance-manager-panel,
+  body.overlay-mode .balance-nav-panel,
+  body.overlay-mode .moviequote-admin-panel{
+    display:none !important;
+  }
+  body.overlay-mode .mafia-live,
+  body.overlay-mode .balance-live{
+    display:block !important;
+  }
+  body.overlay-mode .moviequote-page{
+    display:block !important;
+    background:#00FF00 !important;
+  }
+  body.overlay-mode .moviequote-stage{
+    position:absolute !important;
+    inset:0 !important;
+    width:100% !important;
+    height:100% !important;
+    background:#00FF00 !important;
+  }
+  body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-camera-zone,
+  body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-floating-title{
+    display:none !important;
+  }
+  body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-phone-wrap{
+    position:absolute !important;
+    left:50% !important;
+    top:50% !important;
+    transform:translate(-50%,-50%) !important;
+  }
+
+
+  /* === 풀프레임 오버레이 크로마키 복구: 스타마블 / 밸런스토론 / 마피아 === */
+  body.overlay-mode[data-overlay-target="starmarble"],
+  body.overlay-mode[data-overlay-target="balance"],
+  body.overlay-mode[data-overlay-target="mafia"],
+  body.overlay-mode[data-overlay-target="starmarble"] .shell,
+  body.overlay-mode[data-overlay-target="balance"] .shell,
+  body.overlay-mode[data-overlay-target="mafia"] .shell,
+  body.overlay-mode[data-overlay-target="starmarble"] .stage,
+  body.overlay-mode[data-overlay-target="balance"] .stage,
+  body.overlay-mode[data-overlay-target="mafia"] .stage,
+  body.overlay-mode[data-overlay-target="starmarble"] #app,
+  body.overlay-mode[data-overlay-target="balance"] #app,
+  body.overlay-mode[data-overlay-target="mafia"] #app,
+  body.overlay-mode[data-overlay-target="starmarble"] .content-view.overlay-active,
+  body.overlay-mode[data-overlay-target="balance"] .content-view.overlay-active,
+  body.overlay-mode[data-overlay-target="mafia"] .content-view.overlay-active,
+  body.overlay-mode[data-overlay-target="balance"] .balance-debate,
+  body.overlay-mode[data-overlay-target="balance"] .balance-live,
+  body.overlay-mode[data-overlay-target="mafia"] .mafia-game,
+  body.overlay-mode[data-overlay-target="mafia"] .mafia-live{
+    background:#00FF00 !important;
+  }
+
+  body.overlay-mode[data-overlay-target="starmarble"] .board,
+  body.overlay-mode[data-overlay-target="starmarble"] .piece-layer{
+    background:transparent !important;
+  }
+
+  body.overlay-mode[data-overlay-target="balance"] .balance-title-panel,
+  body.overlay-mode[data-overlay-target="balance"] .balance-side,
+  body.overlay-mode[data-overlay-target="balance"] .balance-member-card,
+  body.overlay-mode[data-overlay-target="balance"] .balance-team-banner,
+  body.overlay-mode[data-overlay-target="mafia"] .mafia-title-panel,
+  body.overlay-mode[data-overlay-target="mafia"] .mafia-card-row,
+  body.overlay-mode[data-overlay-target="mafia"] .mafia-card{
+    /* 카드/패널 자체는 유지 */
+  }
+
 </style>
 </head>
 <body>
@@ -2718,20 +2771,48 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   <aside class="side-tabs">
     <div class="side-title">컨텐츠 탭</div>
     <button class="tab-btn active" data-tab="starmarble">스타마블</button>
+    <div class="tab-overlay-tools" data-tools-for="starmarble">
+      <button type="button" onclick="copyOverlayUrl('starmarble')">스타마블 오버레이 주소 복사</button>
+      <div class="chroma-copy-label">크로마키 색상 / 드래그 복사용</div>
+      <input class="chroma-copy-value" value="#00FF00" readonly onclick="this.select()" />
+    </div>
     <button class="tab-btn" data-tab="songquiz">노래 맞추기</button>
+    <div class="tab-overlay-tools" data-tools-for="songquiz">
+      <button type="button" onclick="copyOverlayUrl('songquiz')">노래맞추기 오버레이 주소 복사</button>
+      <div class="chroma-copy-label">크로마키 색상 / 드래그 복사용</div>
+      <input class="chroma-copy-value" value="#00FF00" readonly onclick="this.select()" />
+    </div>
     <button class="tab-btn" data-tab="moviequote">영화 대사 맞추기</button>
+    <div class="tab-overlay-tools" data-tools-for="moviequote">
+      <button type="button" onclick="copyOverlayUrl('moviequote')">영화명대사 오버레이 주소 복사</button>
+      <div class="chroma-copy-label">크로마키 색상 / 드래그 복사용</div>
+      <input class="chroma-copy-value" value="#00FF00" readonly onclick="this.select()" />
+    </div>
     <button class="tab-btn" data-tab="balance">밸런스토론</button>
+    <div class="tab-overlay-tools" data-tools-for="balance">
+      <button type="button" onclick="copyOverlayUrl('balance')">밸런스토론 오버레이 주소 복사</button>
+      <div class="chroma-copy-label">크로마키 색상 / 드래그 복사용</div>
+      <input class="chroma-copy-value" value="#00FF00" readonly onclick="this.select()" />
+    </div>
     <button class="tab-btn" data-tab="mafia">마피아</button>
+    <div class="tab-overlay-tools" data-tools-for="mafia">
+      <button type="button" onclick="copyOverlayUrl('mafia')">마피아 오버레이 주소 복사</button>
+      <div class="chroma-copy-label">크로마키 색상 / 드래그 복사용</div>
+      <input class="chroma-copy-value" value="#00FF00" readonly onclick="this.select()" />
+    </div>
     <button class="tab-btn" data-tab="anonymouschat">익명카톡</button>
+    <div class="tab-overlay-tools" data-tools-for="anonymouschat">
+      <button type="button" onclick="copyOverlayUrl('anonymouschat')">익명카톡 오버레이 주소 복사</button>
+      <div class="chroma-copy-label">크로마키 색상 / 드래그 복사용</div>
+      <input class="chroma-copy-value" value="#00FF00" readonly onclick="this.select()" />
+    </div>
     <button class="tab-btn" data-tab="relay">릴레이 미션</button>
     <button class="tab-btn" data-tab="humanwrong">인간틀린그림</button>
     <div class="tab-note">오른쪽 영역만 캡처하고 프릭샷 크로마키에서 초록색(#00FF00)을 제거하세요.</div>
   </aside>
 
   <main class="stage" id="captureStage">
-    <div class="capture-guide">오른쪽 영역만 캡처 → 프릭샷 크로마키 색상 #00FF00</div>
     <section class="content-view active" data-view="starmarble">
-      <button class="overlay-copy-btn" data-overlay-copy="starmarble" type="button" onclick="copyOverlayUrl('starmarble')">스타마블 오버레이 주소 복사</button>
       <div id="app">
         <div class="board" id="board"></div>
         <div class="piece-layer" id="pieceLayer"></div>
@@ -2779,7 +2860,6 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
 
 
     <section class="content-view" data-view="moviequote">
-      <button class="overlay-copy-btn" data-overlay-copy="moviequote" type="button" onclick="copyOverlayUrl('moviequote')">영화명대사 오버레이 주소 복사</button>
       <div class="moviequote-embed-wrap">
         <div class="moviequote-page">
           <aside class="moviequote-admin-panel">
@@ -2859,7 +2939,6 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     </section>
 
     <section class="content-view" data-view="songquiz">
-      <button class="overlay-copy-btn" data-overlay-copy="songquiz" type="button" onclick="copyOverlayUrl('songquiz')">노래맞추기 오버레이 주소 복사</button>
       <div class="songquiz-embed-wrap">
       <div class="songquiz-object-overlay" aria-label="노래맞추기 오버레이">
         <div class="songquiz-object-mode">1초듣기 대기중</div>
@@ -2940,7 +3019,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     .song-row .name{font-weight:900;letter-spacing:-.02em}
     .song-row .artist{font-size:13px;color:var(--muted);font-weight:800;margin-top:3px}
     .song-row .time{font-size:12px;color:#dbeafe;font-weight:900;background:rgba(94,231,255,.11);padding:6px 8px;border-radius:999px}
-    .broadcast-capture{background:#00ff00;border-radius:26px;padding:18px;border:2px dashed rgba(255,255,255,.35);margin-bottom:14px;min-height:300px;display:flex;align-items:center;justify-content:center}
+    .broadcast-capture{background:#00FF00;border-radius:26px;padding:18px;border:2px dashed rgba(255,255,255,.35);margin-bottom:14px;min-height:300px;display:flex;align-items:center;justify-content:center}
     .overlay-card{width:100%;min-height:260px;border-radius:30px;background:linear-gradient(180deg,rgba(18,27,46,.96),rgba(13,21,37,.96));border:2px solid rgba(255,255,255,.12);box-shadow:0 18px 45px rgba(0,0,0,.42);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px}
     .overlay-mode{font-size:34px;font-weight:1000;color:var(--point);letter-spacing:-.04em}
     .overlay-q{font-size:72px;font-weight:1000;line-height:1;margin-top:22px;letter-spacing:-.06em;color:#fff}
@@ -3519,7 +3598,6 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       </div>
     </section>
     <section class="content-view" data-view="mafia">
-      <button class="overlay-copy-btn" data-overlay-copy="mafia" type="button" onclick="copyOverlayUrl('mafia')">마피아 오버레이 주소 복사</button>
       <div class="mafia-game" id="mafiaGame">
         <div class="mafia-setup" id="mafiaSetup">
           <div class="mafia-setup-card">
@@ -3603,7 +3681,6 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     </section>
 
     <section class="content-view" data-view="anonymouschat">
-      <button class="overlay-copy-btn" data-overlay-copy="anonymouschat" type="button" onclick="copyOverlayUrl('anonymouschat')">익명카톡 오버레이 주소 복사</button>
       <div class="anonymous-chat">
         <div class="anonymous-floating-title">오픈 익명카톡 · 텔레그램 사용 예정 그냥 오픈카톡방 사용가능, 이건 필요시 제작</div>
         <div class="anonymous-camera-zone left"></div>
@@ -3672,7 +3749,6 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     </section>
 
 <section class="content-view" data-view="balance">
-      <button class="overlay-copy-btn" data-overlay-copy="balance" type="button" onclick="copyOverlayUrl('balance')">밸런스토론 오버레이 주소 복사</button>
       <div class="balance-debate" id="balanceDebate">
         <div class="balance-setup" id="balanceSetup">
           <div class="balance-setup-card">
@@ -5479,13 +5555,14 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
 
 <script>
 (function(){
+  const CHROMA_COLOR = '#00FF00';
   const TARGET_LABELS = {
     starmarble:'스타마블',
-    songquiz:'노래맞추기',
     moviequote:'영화명대사',
-    balance:'밸런스토론',
+    songquiz:'노래맞추기',
     mafia:'마피아',
-    anonymouschat:'익명카톡'
+    anonymouschat:'익명카톡',
+    balance:'밸런스토론'
   };
 
   window.copyOverlayUrl = function(target){
@@ -5501,13 +5578,33 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     }
   };
 
+  function setActiveTool(tabName){
+    document.querySelectorAll('.tab-overlay-tools').forEach(tool=>{
+      tool.classList.toggle('active', tool.dataset.toolsFor === tabName);
+    });
+  }
+
+  function bindTabToolState(){
+    document.querySelectorAll('.tab-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        setActiveTool(btn.dataset.tab);
+      });
+    });
+
+    const current = document.querySelector('.tab-btn.active')?.dataset.tab || 'starmarble';
+    setActiveTool(current);
+  }
+
   function applyOverlayView(){
     const params = new URLSearchParams(location.search);
     if(params.get('view') !== 'overlay') return;
 
     const target = params.get('target') || 'starmarble';
+
     document.body.classList.add('broadcast','overlay-mode');
     document.body.setAttribute('data-overlay-target', target);
+    document.documentElement.style.background = CHROMA_COLOR;
+    document.body.style.background = CHROMA_COLOR;
 
     document.querySelectorAll('.content-view').forEach(section=>{
       const isTarget = section.dataset.view === target;
@@ -5530,10 +5627,15 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     }
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', applyOverlayView);
-  }else{
+  function initOverlayTools(){
+    bindTabToolState();
     applyOverlayView();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initOverlayTools);
+  }else{
+    initOverlayTools();
   }
 })();
 </script>

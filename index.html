@@ -2800,10 +2800,10 @@
     &lt;section class=&quot;hero&quot;&gt;
       &lt;div&gt;
         &lt;h1&gt;노래 맞추기 테스트&lt;/h1&gt;
-        &lt;p&gt;유튜브 모음집 2개 기반 · 1초/20초 힌트 · 3곡 믹스 · 직접입력 가사 데이터형&lt;/p&gt;
+        &lt;p&gt;유튜브 플레이리스트 기반 · 1초/20초 힌트 · 3곡 믹스 · 직접입력 가사 데이터형&lt;/p&gt;
       &lt;/div&gt;
       &lt;div class=&quot;stats&quot;&gt;
-        &lt;div class=&quot;pill&quot;&gt;영상 2개&lt;/div&gt;
+        &lt;div class=&quot;pill&quot;&gt;플레이리스트&lt;/div&gt;
         &lt;div class=&quot;pill&quot;&gt;총 &lt;span id=&quot;totalCount&quot;&gt;0&lt;/span&gt;곡&lt;/div&gt;
         &lt;div class=&quot;pill&quot;&gt;중복방지 ON&lt;/div&gt;
       &lt;/div&gt;
@@ -2829,7 +2829,7 @@
 
             &lt;div class=&quot;answer-box&quot; id=&quot;answerBox&quot;&gt;
               &lt;div class=&quot;answer-main&quot; id=&quot;answerMain&quot;&gt;정답&lt;/div&gt;
-              &lt;div class=&quot;answer-sub&quot; id=&quot;answerSub&quot;&gt;가수 / 영상 / 시간&lt;/div&gt;
+              &lt;div class=&quot;answer-sub&quot; id=&quot;answerSub&quot;&gt;가수 / 유튜브 영상&lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
 
@@ -2886,10 +2886,10 @@
           &lt;div class=&quot;settings&quot;&gt;
             &lt;div class=&quot;field&quot;&gt;
               &lt;label&gt;출제 영상&lt;/label&gt;
-              &lt;select id=&quot;sourceFilter&quot; onchange=&quot;renderList()&quot;&gt;
-                &lt;option value=&quot;all&quot;&gt;전체&lt;/option&gt;
-                &lt;option value=&quot;ZkOMF2izt5k&quot;&gt;영상 1 · 50곡&lt;/option&gt;
-                &lt;option value=&quot;SEP7WEzI7NU&quot;&gt;영상 2 · 82곡&lt;/option&gt;
+              &lt;select id=&quot;sourceFilter&quot; onchange=&quot;changePlaylist(this.value)&quot;&gt;
+                &lt;option value=&quot;00s&quot;&gt;00년대&lt;/option&gt;
+                &lt;option value=&quot;10s&quot;&gt;10년대&lt;/option&gt;
+                &lt;option value=&quot;20s&quot;&gt;20년대&lt;/option&gt;
               &lt;/select&gt;
             &lt;/div&gt;
             &lt;div class=&quot;field&quot;&gt;
@@ -2914,79 +2914,120 @@
 
   &lt;script src=&quot;https://www.youtube.com/iframe_api&quot;&gt;&lt;/script&gt;
   &lt;script&gt;
-    const VIDEO1 = &#x27;ZkOMF2izt5k&#x27;;
-    const VIDEO2 = &#x27;SEP7WEzI7NU&#x27;;
+    const PLAYLISTS = [
+      {key:&#x27;00s&#x27;, name:&#x27;00년대&#x27;, playlistId:&#x27;PLooeWILrVByL5_q0cGVJ4EFV_I6dM-VBI&#x27;},
+      {key:&#x27;10s&#x27;, name:&#x27;10년대&#x27;, playlistId:&#x27;PLGR97r28jSO6Uo9ZarSNbbnN2kxjlVdeT&#x27;},
+      {key:&#x27;20s&#x27;, name:&#x27;20년대&#x27;, playlistId:&#x27;PLLDEpvvWcsdRW8YmPQVDbwrnrOcHyAVvY&#x27;}
+    ];
+    let activePlaylistKey = &#x27;00s&#x27;;
+    function activePlaylist(){
+      return PLAYLISTS.find(p=&gt;p.key===activePlaylistKey) || PLAYLISTS[0];
+    }
+    const DEFAULT_START_SEC = 20;
+    const ONE_SECOND_RANGE = [20, 55];
+    const ONE_HINT_SECONDS = 20;
+    const MIX_PLAY_SECONDS = 30;
+    const MIX_HINT_SECONDS = 90;
 
-    function t(sec){ return sec; }
+    const TTS_BANK = [
+      {title:&#x27;Gee&#x27;,artist:&#x27;소녀시대&#x27;,lyrics:`Uh Huh Listen Boy My First Love Story My Angel &amp; My Girls My Sunshine Uh Uh Let&#x27;s go\n너무너무 멋져 눈이 눈이 부셔 숨을 못 쉬겠어 떨리는 Girl`},
+      {title:&#x27;거짓말&#x27;,artist:&#x27;BIGBANG&#x27;,lyrics:`늦은 밤 비가 내려와 널 데려와\n젖은 기억 끝에 뒤척여 나\n너 없이 잘 살 수 있다고\n다짐해 봐도 어쩔 수 없다고`},
+      {title:&#x27;Fire&#x27;,artist:&#x27;2NE1&#x27;,lyrics:`Come in come in come in 다른 세상으로\n지겹기만한 고민은 이제 등을 지고\n라라라라 가식없는 나의 콧노래로`},
+      {title:&#x27;Lollipop&#x27;,artist:&#x27;빅뱅 &amp; 2NE1&#x27;,lyrics:`막대사탕보다 더 달콤한\n내 마음은 터질듯한 Dynamite\n난 깔끔한 남자 T.O.P.`},
+      {title:&#x27;Nobody&#x27;,artist:&#x27;원더걸스&#x27;,lyrics:`난 싫은데 왜 날 밀어내\n려고 하니 자꾸 내말은 듣지 않고\n왜 이렇게 다른 남자에게\n날 보내려 하니 어떻게 이러니`},
+      {title:&#x27;So Hot&#x27;,artist:&#x27;원더걸스&#x27;,lyrics:`왜 자꾸 쳐다보니 왜에에\n내가 그렇게 예쁘니 이이\n아무리 그렇다고 그렇게 쳐다보면\n내가 좀 쑥스럽잖니 이이`},
+      {title:&#x27;Bo Peep Bo Peep&#x27;,artist:&#x27;티아라&#x27;,lyrics:`이젠 나에게 지쳤다고 말하는 너\n화 좀 내지 말라고\nBo Peep Bo Peep Bo Peep Ah`},
+      {title:&#x27;Abracadabra&#x27;,artist:&#x27;브라운아이드걸스&#x27;,lyrics:`이러다 미쳐 내가 여리여리 착하던 그런 내가\n너 때문에 돌아 내가 독한 나로 변해 내가`},
+      {title:&#x27;누난 너무 예뻐&#x27;,artist:&#x27;SHINee&#x27;,lyrics:`끝이 다가오는 걸\n가슴이 말해준다 누가 뭐래도\n누난 너무 예뻐`},
+      {title:&#x27;Bad Girl Good Girl&#x27;,artist:&#x27;miss A&#x27;,lyrics:`앞에선 한 마디도 못하더니\n뒤에선 내 얘길 안 좋게 해\n참 어이가 없어`},
+      {title:&#x27;비밀번호 486&#x27;,artist:&#x27;윤하&#x27;,lyrics:`자는 생각보다 단순하지 않아\n행복하게 만드는 방법도\n조금씩은 달라\n하루에 네번 사랑을 말하고`},
+      {title:&#x27;외톨이야&#x27;,artist:&#x27;씨엔블루&#x27;,lyrics:`봐봐 나를 봐봐\n똑바로 내두눈을 봐\n거봐 이미 너는 딴 곳을 보고 있어\nCheck it One Two Three`},
+      {title:&#x27;다시 여기 바닷가&#x27;,artist:&#x27;싹쓰리&#x27;,lyrics:`흐르는 시간 속에서\n너와 내 기억은\n점점 희미해져만 가\n끝난 줄 알았어\n지난여름 바닷가`}
+    ];
+
     function fmt(sec){
+      sec = Math.max(0, Math.floor(sec || 0));
       const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
       return h ? `${String(h).padStart(2,&#x27;0&#x27;)}:${String(m).padStart(2,&#x27;0&#x27;)}:${String(s).padStart(2,&#x27;0&#x27;)}` : `${String(m).padStart(2,&#x27;0&#x27;)}:${String(s).padStart(2,&#x27;0&#x27;)}`;
     }
 
-    const songs = [
-      // 영상 1 · 50곡
-      [&#x27;Gee&#x27;,&#x27;소녀시대&#x27;,VIDEO1,t(0), `Uh Huh Listen Boy My First Love Story My Angel &amp; My Girls My Sunshine Uh Uh Let&#x27;s go
-너무너무 멋져 눈이 눈이 부셔 숨을 못 쉬겠어 떨리는 Gir`],[&#x27;거짓말&#x27;,&#x27;BIGBANG&#x27;,VIDEO1,t(199), `늦은 밤 비가 내려와 널 데려와
-젖은 기억 끝에 뒤척여 나
-너 없이 잘 살 수 있다고
-다짐해 봐도 어쩔 수 없다고
-못하는 술도 마시고 (Ha)
-속 타는 맘 밤새 채워 봐도
-싫어, 너 없는 하루는 길어`],[&#x27;Fire&#x27;,&#x27;2NE1&#x27;,VIDEO1,t(427), `Come in come in come in 다른 세상으로
-지겹기만한 고민은 이제 등을 지고
-라라라라 가식없는 나의 콧노래로
-하하하하 다신 널 비웃지 못하도록`],[&#x27;Lollipop&#x27;,&#x27;빅뱅 &amp; 2NE1&#x27;,VIDEO1,t(649), `막대사탕보다 더 달콤한
-내 마음은 터질듯한 Dynamite
-난 깔끔한 남자 T.O.P.
-내사랑 Bling Bling like L E D
-
-Oh!그댄 딱 내 스타일이야
-반짝반짝 스타야
-색다른걸 원해?
-Let me show you if that&#x27;s okay`],[&#x27;Nobody&#x27;,&#x27;원더걸스&#x27;,VIDEO1,t(837), `난 싫은데 왜 날 밀어내
-려고 하니 자꾸 내말은 듣지 않고
-왜 이렇게 다른 남자에게
-날 보내려 하니 어떻게 이러니
-날 위해 그렇단 그 말
-넌 부족하다는 그 말
-이젠 그만해 넌 나를 알잖아 왜
-원하지도 않는걸 강요해`],[&#x27;So Hot&#x27;,&#x27;원더걸스&#x27;,VIDEO1,t(1048), `왜 자꾸 쳐다보니 왜에에
-내가 그렇게 예쁘니 이이
-아무리 그렇다고 그렇게 쳐다보면
-내가 좀 쑥스럽잖니 이이`],[&#x27;Bo Peep Bo Peep&#x27;,&#x27;티아라&#x27;,VIDEO1,t(1228), `이젠 나에게 지쳤다고 말하는 너
-화 좀 내지 말라고
-Bo Peep Bo Peep Bo Peep Ah`],[&#x27;Roly-Poly&#x27;,&#x27;티아라&#x27;,VIDEO1,t(1452)],[&#x27;U-Go-Girl&#x27;,&#x27;이효리&#x27;,VIDEO1,t(1665)],[&#x27;Abracadabra&#x27;,&#x27;브라운아이드걸스&#x27;,VIDEO1,t(1853), `이러다 미쳐 내가 여리여리 착하던 그런 내가
-너 때문에 돌아 내가 독한 나로 변해 내가
-널 닮은 인형에다 주문을 또 걸어 내가
-그녀와 찢어져 달라고 고`],[&#x27;My Style&#x27;,&#x27;브라운아이드걸스&#x27;,VIDEO1,t(2035)],[&#x27;누난 너무 예뻐&#x27;,&#x27;SHINee&#x27;,VIDEO1,t(2273), `끝이 다가오는 걸
-가슴이 말해준다 누가 뭐래도
-누난 너무 예뻐 (그 그녀를 보는 나는) 미쳐`],[&#x27;8282&#x27;,&#x27;다비치&#x27;,VIDEO1,t(2486)],[&#x27;사랑스러워&#x27;,&#x27;김종국&#x27;,VIDEO1,t(2703)],[&#x27;Hug&#x27;,&#x27;동방신기&#x27;,VIDEO1,t(2968)],[&#x27;Snow Prince&#x27;,&#x27;SS501&#x27;,VIDEO1,t(3195)],[&#x27;Must Have Love&#x27;,&#x27;SG워너비 &amp; 브라운아이드걸스&#x27;,VIDEO1,t(3397)],[&#x27;Love Song&#x27;,&#x27;7공주&#x27;,VIDEO1,t(3653)],[&#x27;냉면&#x27;,&#x27;명카드라이브&#x27;,VIDEO1,t(3882)],[&#x27;I Don\&#x27;t Care&#x27;,&#x27;2NE1&#x27;,VIDEO1,t(4099)],[&#x27;Bad Girl Good Girl&#x27;,&#x27;miss A&#x27;,VIDEO1,t(4337), `앞에선 한 마디도 못하더니
-뒤에선 내 얘길 안 좋게 해
-참 어이가 없어`],[&#x27;Chu~♡&#x27;,&#x27;f(x)&#x27;,VIDEO1,t(4552)],[&#x27;10점 만점에 10점&#x27;,&#x27;2PM&#x27;,VIDEO1,t(4742)],[&#x27;Hot Issue&#x27;,&#x27;4minute&#x27;,VIDEO1,t(4943)],[&#x27;미스터&#x27;,&#x27;카라&#x27;,VIDEO1,t(5150)],[&#x27;Diva&#x27;,&#x27;애프터스쿨&#x27;,VIDEO1,t(5341)],[&#x27;만만하니&#x27;,&#x27;유키스&#x27;,VIDEO1,t(5539)],[&#x27;삐리빠빠&#x27;,&#x27;나르샤&#x27;,VIDEO1,t(5750)],[&#x27;삐리뽐 빼리뽐&#x27;,&#x27;남녀공학&#x27;,VIDEO1,t(5956)],[&#x27;Brand New&#x27;,&#x27;신화&#x27;,VIDEO1,t(6144)],[&#x27;Rainism&#x27;,&#x27;비&#x27;,VIDEO1,t(6370)],[&#x27;토요일밤에&#x27;,&#x27;손담비&#x27;,VIDEO1,t(6585)],[&#x27;유혹의 소나타&#x27;,&#x27;아이비&#x27;,VIDEO1,t(6806)],[&#x27;내 귀에 캔디&#x27;,&#x27;백지영&#x27;,VIDEO1,t(7010)],[&#x27;One More Time&#x27;,&#x27;쥬얼리&#x27;,VIDEO1,t(7233)],[&#x27;낭만 고양이&#x27;,&#x27;체리필터&#x27;,VIDEO1,t(7434)],[&#x27;나에게로 떠나는 여행&#x27;,&#x27;버즈&#x27;,VIDEO1,t(7657)],[&#x27;비행기&#x27;,&#x27;거북이&#x27;,VIDEO1,t(7863)],[&#x27;마쉬멜로우&#x27;,&#x27;아이유&#x27;,VIDEO1,t(8075)],[&#x27;기억을 걷는 시간&#x27;,&#x27;넬&#x27;,VIDEO1,t(8268)],[&#x27;사랑했나봐&#x27;,&#x27;윤도현&#x27;,VIDEO1,t(8578)],[&#x27;친구여&#x27;,&#x27;조PD feat. 인순이&#x27;,VIDEO1,t(8811)],[&#x27;사랑인걸&#x27;,&#x27;모세&#x27;,VIDEO1,t(9068)],[&#x27;내 여자라니까&#x27;,&#x27;이승기&#x27;,VIDEO1,t(9321)],[&#x27;사랑앓이&#x27;,&#x27;FTISLAND&#x27;,VIDEO1,t(9566)],[&#x27;친구의 고백&#x27;,&#x27;2AM&#x27;,VIDEO1,t(9808)],[&#x27;점점&#x27;,&#x27;브라운 아이즈&#x27;,VIDEO1,t(10065)],[&#x27;사랑..그게 뭔데&#x27;,&#x27;양파&#x27;,VIDEO1,t(10276)],[&#x27;총맞은것처럼&#x27;,&#x27;백지영&#x27;,VIDEO1,t(10514)],[&#x27;바람만바람만&#x27;,&#x27;김종국 &amp; SG워너비&#x27;,VIDEO1,t(10752)],
-      // 영상 2 · 82곡
-      [&#x27;풍선&#x27;,&#x27;동방신기&#x27;,VIDEO2,t(1)],[&#x27;혼자가 아닌 나&#x27;,&#x27;서영은&#x27;,VIDEO2,t(229)],[&#x27;파란&#x27;,&#x27;코요테&#x27;,VIDEO2,t(438)],[&#x27;파도&#x27;,&#x27;UN&#x27;,VIDEO2,t(665)],[&#x27;캔디&#x27;,&#x27;H.O.T&#x27;,VIDEO2,t(916)],[&#x27;촛불하나&#x27;,&#x27;god&#x27;,VIDEO2,t(1139)],[&#x27;제주도의 푸른 밤&#x27;,&#x27;태연&#x27;,VIDEO2,t(1345)],[&#x27;이 여름&#x27;,&#x27;쿨&#x27;,VIDEO2,t(1548)],[&#x27;운명&#x27;,&#x27;쿨&#x27;,VIDEO2,t(1784)],[&#x27;왜 이러니&#x27;,&#x27;티아라&#x27;,VIDEO2,t(2009)],[&#x27;예술이야&#x27;,&#x27;싸이&#x27;,VIDEO2,t(2249)],[&#x27;연예인&#x27;,&#x27;싸이&#x27;,VIDEO2,t(2529)],[&#x27;어땠을까&#x27;,&#x27;싸이 feat. 박정현&#x27;,VIDEO2,t(2734)],[&#x27;애상&#x27;,&#x27;쿨&#x27;,VIDEO2,t(2978)],[&#x27;아틀란티스 소녀&#x27;,&#x27;보아&#x27;,VIDEO2,t(3190)],[&#x27;아름다운 밤&#x27;,&#x27;울랄라세션&#x27;,VIDEO2,t(3415)],[&#x27;슬퍼지려 하기 전에&#x27;,&#x27;쿨&#x27;,VIDEO2,t(3638)],[&#x27;스키장에서&#x27;,&#x27;터보&#x27;,VIDEO2,t(3882)],[&#x27;사랑의 인사&#x27;,&#x27;씨야&#x27;,VIDEO2,t(4082)],[&#x27;사랑스러워&#x27;,&#x27;김종국&#x27;,VIDEO2,t(4357)],[&#x27;사랑과 전쟁&#x27;,&#x27;다비치 feat. 하하&#x27;,VIDEO2,t(4627)],[&#x27;비행기&#x27;,&#x27;거북이&#x27;,VIDEO2,t(4883)],[&#x27;비밀번호 486&#x27;,&#x27;윤하&#x27;,VIDEO2,t(5096), `자는 생각보다 단순하지 않아
-행복하게 만드는 방법도
-조금씩은 달라
-하루에 네번 사랑을 말하고`],[&#x27;비몽&#x27;,&#x27;코요테&#x27;,VIDEO2,t(5324)],[&#x27;비망록&#x27;,&#x27;버즈&#x27;,VIDEO2,t(5525)],[&#x27;붉은 노을&#x27;,&#x27;빅뱅&#x27;,VIDEO2,t(5764)],[&#x27;별이될게&#x27;,&#x27;디셈버&#x27;,VIDEO2,t(5969)],[&#x27;벌써 일년&#x27;,&#x27;브라운 아이즈&#x27;,VIDEO2,t(6181)],[&#x27;버스 안에서&#x27;,&#x27;자자&#x27;,VIDEO2,t(6389)],[&#x27;밥만 잘 먹더라&#x27;,&#x27;옴므&#x27;,VIDEO2,t(6582)],[&#x27;반짝반짝&#x27;,&#x27;걸스데이&#x27;,VIDEO2,t(6806)],[&#x27;미안해서 미안해&#x27;,&#x27;김진표 feat. 지나&#x27;,VIDEO2,t(6993)],[&#x27;뜨거운 안녕&#x27;,&#x27;싸이 feat. 성시경&#x27;,VIDEO2,t(7207)],[&#x27;다시 만난 세계&#x27;,&#x27;소녀시대&#x27;,VIDEO2,t(7417)],[&#x27;니가 참 좋아&#x27;,&#x27;쥬얼리&#x27;,VIDEO2,t(7683)],[&#x27;냉면&#x27;,&#x27;명카드라이브&#x27;,VIDEO2,t(7903)],[&#x27;깊은 밤을 날아서&#x27;,&#x27;규현&#x27;,VIDEO2,t(8122)],[&#x27;김밥&#x27;,&#x27;자두&#x27;,VIDEO2,t(8326)],[&#x27;You And I&#x27;,&#x27;박봄&#x27;,VIDEO2,t(8552)],[&#x27;Time to Love&#x27;,&#x27;티아라&#x27;,VIDEO2,t(8786)],[&#x27;톡톡&#x27;,&#x27;마이티 마우스&#x27;,VIDEO2,t(9005)],[&#x27;Time Less&#x27;,&#x27;SG워너비&#x27;,VIDEO2,t(9235)],[&#x27;Sweety&#x27;,&#x27;샵&#x27;,VIDEO2,t(9473)],[&#x27;Stand By Me&#x27;,&#x27;샤이니&#x27;,VIDEO2,t(9685)],[&#x27;Somedey&#x27;,&#x27;아이유&#x27;,VIDEO2,t(9932)],[&#x27;맨정신&#x27;,&#x27;빅뱅&#x27;,VIDEO2,t(10149)],[&#x27;Sign&#x27;,&#x27;브라운 아이드 걸스&#x27;,VIDEO2,t(10386)],[&#x27;Shock&#x27;,&#x27;비스트&#x27;,VIDEO2,t(10591)],[&#x27;토요일 밤에&#x27;,&#x27;손담비&#x27;,VIDEO2,t(10817)],[&#x27;하늘을 달리다&#x27;,&#x27;이적&#x27;,VIDEO2,t(11042)],[&#x27;건물 사이에 피어난 장미&#x27;,&#x27;하이키&#x27;,VIDEO2,t(11305)],[&#x27;로맨틱 겨울&#x27;,&#x27;김진표 feat. 김진호&#x27;,VIDEO2,t(11501)],[&#x27;롤리폴리&#x27;,&#x27;티아라&#x27;,VIDEO2,t(11751)],[&#x27;우리의 꿈&#x27;,&#x27;코요테&#x27;,VIDEO2,t(11965)],[&#x27;Nobody&#x27;,&#x27;원더걸스&#x27;,VIDEO2,t(12216)],[&#x27;No.1&#x27;,&#x27;보아&#x27;,VIDEO2,t(12431)],[&#x27;My Love&#x27;,&#x27;이승철&#x27;,VIDEO2,t(12625)],[&#x27;친구여&#x27;,&#x27;조PD feat. 인순이&#x27;,VIDEO2,t(12828)],[&#x27;Mr. Chu&#x27;,&#x27;에이핑크&#x27;,VIDEO2,t(13090)],[&#x27;달빛소년&#x27;,&#x27;체리필터&#x27;,VIDEO2,t(13305)],[&#x27;만남&#x27;,&#x27;코요테&#x27;,VIDEO2,t(13545)],[&#x27;Maria&#x27;,&#x27;김아중&#x27;,VIDEO2,t(13759)],[&#x27;사랑비&#x27;,&#x27;김태우&#x27;,VIDEO2,t(13947)],[&#x27;외톨이야&#x27;,&#x27;씨엔블루&#x27;,VIDEO2,t(14187), `봐봐 나를 봐봐
-똑바로 내 두눈을 봐
-거봐 이미 너는 딴 곳을 보고 있어
-Check it One Two Three`],[&#x27;가슴에 살아&#x27;,&#x27;언터쳐블 feat. 나르샤&#x27;,VIDEO2,t(14406)],[&#x27;Let Me Dance&#x27;,&#x27;렉시 feat. 테디&#x27;,VIDEO2,t(14635)],[&#x27;클락션&#x27;,&#x27;(여자)아이들&#x27;,VIDEO2,t(14860)],[&#x27;Joy&#x27;,&#x27;디바&#x27;,VIDEO2,t(15036)],[&#x27;I Don\&#x27;t Care&#x27;,&#x27;2NE1&#x27;,VIDEO2,t(15199)],[&#x27;내 손을 잡아&#x27;,&#x27;아이유&#x27;,VIDEO2,t(15438)],[&#x27;Her&#x27;,&#x27;블락비&#x27;,VIDEO2,t(15633)],[&#x27;Heaven&#x27;,&#x27;에일리&#x27;,VIDEO2,t(15813)],[&#x27;Good bye To Romance&#x27;,&#x27;써니힐&#x27;,VIDEO2,t(16025)],[&#x27;Festival&#x27;,&#x27;엄정화&#x27;,VIDEO2,t(16283)],[&#x27;Diva&#x27;,&#x27;애프터스쿨&#x27;,VIDEO2,t(16520)],[&#x27;데칼코마니&#x27;,&#x27;마마무&#x27;,VIDEO2,t(16719)],[&#x27;Doc와 춤&#x27;,&#x27;DJ DOC&#x27;,VIDEO2,t(16935)],[&#x27;칵테일 사랑&#x27;,&#x27;거북이&#x27;,VIDEO2,t(17128)],[&#x27;버스 안에서&#x27;,&#x27;자자&#x27;,VIDEO2,t(17340)],[&#x27;Blue&#x27;,&#x27;빅뱅&#x27;,VIDEO2,t(17533)],[&#x27;빙고&#x27;,&#x27;거북이&#x27;,VIDEO2,t(17767)],[&#x27;다시 여기 바닷가&#x27;,&#x27;싹쓰리&#x27;,VIDEO2,t(17959), `흐르는 시간 속에서
-너와 내 기억은
-점점 희미해져만 가
-끝난 줄 알았어
-
-지난여름 바닷가`]
-    ].map((s,i)=&gt;({ id:i+1, title:s[0], artist:s[1], videoId:s[2], start:s[3],
-lyrics:s[4]||&#x27;&#x27; }));
-
+    let songs = [];
     let player, mixPlayers = [], mode=&#x27;one&#x27;, current=null, currentMix=[], used = new Set(), round=0, ready=false;
-    let oneTimer=null, mixTimer=null;
+    let oneTimer=null, mixTimer=null, ttsIndex=0;
 
     function onYouTubeIframeAPIReady(){
-      player = new YT.Player(&#x27;player&#x27;, { videoId: VIDEO1, playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1}, events:{onReady:()=&gt;{ready=true;}} });
+      player = new YT.Player(&#x27;player&#x27;, {
+        playerVars:{listType:&#x27;playlist&#x27;,list:activePlaylist().playlistId,controls:1,rel:0,modestbranding:1,playsinline:1},
+        events:{
+          onReady:()=&gt;{ ready=true; loadPlaylistSongs(); },
+          onStateChange:e=&gt;{ if(e.data===YT.PlayerState.PLAYING) syncCurrentMeta(player,current); }
+        }
+      });
+
       for(let i=1;i&lt;=3;i++){
-        mixPlayers.push(new YT.Player(&#x27;mixPlayer&#x27;+i, { videoId: VIDEO1, playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1} }));
+        mixPlayers.push(new YT.Player(&#x27;mixPlayer&#x27;+i, {
+          playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1},
+          events:{
+            onStateChange:e=&gt;{
+              if(e.data===YT.PlayerState.PLAYING){
+                const idx = mixPlayers.indexOf(e.target);
+                if(idx &gt;= 0 &amp;&amp; currentMix[idx]) syncCurrentMeta(e.target,currentMix[idx]);
+              }
+            }
+          }
+        }));
       }
+    }
+
+    function loadPlaylistSongs(){
+      if(!player) return;
+      const pl = activePlaylist();
+      songs = [];
+      used.clear();
+      round = 0;
+      current = null;
+      currentMix = [];
+      updateStats();
+      renderList();
+      hideAnswer();
+      document.getElementById(&#x27;questionNo&#x27;).textContent=&#x27;READY&#x27;;
+      document.getElementById(&#x27;questionHint&#x27;).textContent=`${pl.name} 플레이리스트 로딩중입니다.`;
+      player.cuePlaylist({list:pl.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC});
+      setTimeout(buildSongsFromPlaylist, 1200);
+      setTimeout(buildSongsFromPlaylist, 3200);
+    }
+
+    function changePlaylist(key){
+      const exists = PLAYLISTS.some(p=&gt;p.key===key);
+      activePlaylistKey = exists ? key : PLAYLISTS[0].key;
+      stopAll();
+      loadPlaylistSongs();
+      updateOverlay(false);
+    }
+
+    function buildSongsFromPlaylist(){
+      if(!player || !player.getPlaylist) return;
+      const pl = activePlaylist();
+      const ids = player.getPlaylist() || [];
+      if(!ids.length){
+        document.getElementById(&#x27;questionHint&#x27;).textContent=`${pl.name} 플레이리스트 로딩중입니다. 잠시 후 다시 눌러주세요.`;
+        return;
+      }
+      songs = ids.map((videoId,i)=&gt;({
+        id:i+1,
+        sourceKey:pl.key,
+        sourceName:pl.name,
+        title:`${pl.name} ${String(i+1).padStart(3,&#x27;0&#x27;)}`,
+        artist:&#x27;YouTube&#x27;,
+        videoId,
+        start:DEFAULT_START_SEC,
+        playAt:DEFAULT_START_SEC,
+        thumb:`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        lyrics:&#x27;&#x27;
+      }));
+      updateStats();
+      renderList();
+      document.getElementById(&#x27;questionHint&#x27;).textContent=`${pl.name} ${songs.length}곡 로드 완료 · 새 문제를 누르면 랜덤 출제됩니다.`;
     }
 
     function sample(arr, n=1){
@@ -2994,28 +3035,34 @@ lyrics:s[4]||&#x27;&#x27; }));
       while(pool.length &amp;&amp; out.length&lt;n){ out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); }
       return n===1 ? out[0] : out;
     }
+
     function availableSongs(){
-      const source = document.getElementById(&#x27;sourceFilter&#x27;).value;
-      return songs.filter(s =&gt; (source===&#x27;all&#x27;||s.videoId===source) &amp;&amp; !used.has(s.id));
+      if(!songs.length) buildSongsFromPlaylist();
+      return songs.filter(s =&gt; !used.has(s.id));
     }
+
     function pickOne(){
       let pool = availableSongs();
       if(!pool.length){ used.clear(); pool = availableSongs(); }
       const song = sample(pool);
+      if(!song){ alert(&#x27;플레이리스트가 아직 로드되지 않았습니다. 잠시 후 다시 눌러주세요.&#x27;); return null; }
       used.add(song.id);
       round++;
       updateStats();
       return song;
     }
+
     function pickMix(){
       let pool = availableSongs();
       if(pool.length &lt; 3){ used.clear(); pool = availableSongs(); }
-      const selected = sample(pool,3);
+      const selected = sample(pool,3).filter(Boolean);
+      if(selected.length &lt; 3){ alert(&#x27;플레이리스트가 아직 충분히 로드되지 않았습니다.&#x27;); return []; }
       selected.forEach(s=&gt;used.add(s.id));
       round++;
       updateStats();
       return selected;
     }
+
     function setMode(next){
       mode=next;
       document.querySelectorAll(&#x27;.tab&#x27;).forEach(b=&gt;b.classList.toggle(&#x27;active&#x27;,b.dataset.mode===mode));
@@ -3034,79 +3081,105 @@ lyrics:s[4]||&#x27;&#x27; }));
     }
     document.querySelectorAll(&#x27;.tab&#x27;).forEach(btn=&gt;btn.addEventListener(&#x27;click&#x27;,()=&gt;setMode(btn.dataset.mode)));
 
-    function loadSongToPlayer(song, target=player, offset=8){
-      if(!target) return;
-      target.loadVideoById({videoId:song.videoId, startSeconds:song.start+offset});
-      target.pauseVideo?.();
+    function syncCurrentMeta(target, song){
+      if(!target || !song || !target.getVideoData) return;
+      try{
+        const data = target.getVideoData() || {};
+        if(data.video_id &amp;&amp; data.video_id !== song.videoId) return;
+        if(data.title){ song.title = data.title; }
+        if(data.author){ song.artist = data.author; }
+        setAnswer(currentMix.length ? currentMix : current);
+        updateOverlay(document.getElementById(&#x27;answerBox&#x27;).classList.contains(&#x27;show&#x27;));
+        renderList();
+      }catch(e){}
     }
+
+    function loadSongToPlayer(song, target=player, start=DEFAULT_START_SEC){
+      if(!target || !song) return;
+      target.loadVideoById({videoId:song.videoId, startSeconds:start});
+      setTimeout(()=&gt;{ try{ target.pauseVideo?.(); syncCurrentMeta(target,song); }catch(e){} }, 700);
+    }
+
     function newOneQuestion(){
       stopAll(); hideAnswer(); current = pickOne(); currentMix=[];
-      const offset = 8 + Math.floor(Math.random()*18);
-      current.playAt = current.start + offset;
+      if(!current) return;
+      const offset = ONE_SECOND_RANGE[0] + Math.floor(Math.random()*(ONE_SECOND_RANGE[1]-ONE_SECOND_RANGE[0]+1));
+      current.playAt = offset;
       document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
-      document.getElementById(&#x27;questionHint&#x27;).textContent = `영상 ${current.videoId===VIDEO1?&#x27;1&#x27;:&#x27;2&#x27;} · 랜덤 1초 구간 준비됨 · 실패하면 20초 힌트`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = `${activePlaylist().name} 개별곡 · 랜덤 1초 구간 준비됨 · 실패하면 20초 힌트`;
       updateOverlay(false);
-      loadSongToPlayer(current, player, offset);
+      loadSongToPlayer(current, player, current.playAt);
       setAnswer(current);
     }
+
     function playOneSecond(){
       if(!current) newOneQuestion();
-      if(!player) return;
+      if(!player || !current) return;
       clearTimeout(oneTimer);
       player.loadVideoById({videoId:current.videoId,startSeconds:current.playAt});
       player.playVideo();
+      setTimeout(()=&gt;syncCurrentMeta(player,current), 500);
       oneTimer=setTimeout(()=&gt;player.pauseVideo(),1050);
     }
+
     function playTwentySeconds(){
       if(!current) newOneQuestion();
-      if(!player) return;
+      if(!player || !current) return;
       clearTimeout(oneTimer);
-      const start = Math.max(current.start+5, current.playAt-5);
+      const start = DEFAULT_START_SEC;
       player.loadVideoById({videoId:current.videoId,startSeconds:start});
       player.playVideo();
-      oneTimer=setTimeout(()=&gt;player.pauseVideo(),120000);
+      setTimeout(()=&gt;syncCurrentMeta(player,current), 500);
+      oneTimer=setTimeout(()=&gt;player.pauseVideo(),ONE_HINT_SECONDS*1000);
     }
+
     function newMixQuestion(){
       stopAll(); hideAnswer(); currentMix = pickMix(); current=null;
+      if(currentMix.length &lt; 3) return;
       document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
-      document.getElementById(&#x27;questionHint&#x27;).textContent = `서로 다른 3곡을 동시에 맞히는 문제 · 정답은 3개 전부`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = `플레이리스트에서 서로 다른 3곡을 동시에 맞히는 문제`;
       updateOverlay(false);
       currentMix.forEach((s,i)=&gt;{
-        s.playAt = s.start + 10 + Math.floor(Math.random()*12);
+        s.playAt = DEFAULT_START_SEC;
         mixPlayers[i]?.loadVideoById({videoId:s.videoId,startSeconds:s.playAt});
-        mixPlayers[i]?.pauseVideo?.();
+        setTimeout(()=&gt;{ try{ mixPlayers[i]?.pauseVideo?.(); syncCurrentMeta(mixPlayers[i],s); }catch(e){} }, 750);
       });
       setAnswer(currentMix);
     }
+
     function playMix(){
       if(!currentMix.length) newMixQuestion();
+      if(currentMix.length &lt; 3) return;
       clearTimeout(mixTimer);
       currentMix.forEach((s,i)=&gt;{
         const p = mixPlayers[i];
         if(!p) return;
-        p.loadVideoById({videoId:s.videoId,startSeconds:s.playAt});
-        p.setVolume?.(45);
+        p.loadVideoById({videoId:s.videoId,startSeconds:DEFAULT_START_SEC});
+        p.setVolume?.(42);
         p.playVideo?.();
+        setTimeout(()=&gt;syncCurrentMeta(p,s), 500);
       });
-      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),30000);
+      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),MIX_PLAY_SECONDS*1000);
     }
+
     function playMixHint(){
       if(!currentMix.length) newMixQuestion();
+      if(currentMix.length &lt; 3) return;
       clearTimeout(mixTimer);
       currentMix.forEach((s,i)=&gt;{
         const p = mixPlayers[i];
         if(!p) return;
-        p.loadVideoById({videoId:s.videoId,startSeconds:Math.max(s.start+5,s.playAt-5)});
+        p.loadVideoById({videoId:s.videoId,startSeconds:DEFAULT_START_SEC});
         p.setVolume?.(40);
         p.playVideo?.();
+        setTimeout(()=&gt;syncCurrentMeta(p,s), 500);
       });
-      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),120000);
+      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;p.pauseVideo?.()),MIX_HINT_SECONDS*1000);
     }
-    let ttsIndex = 0;
+
     function pickTtsOnlySong(){
-      const ttsPool = songs.filter(s =&gt; s.lyrics &amp;&amp; String(s.lyrics).trim());
-      if(!ttsPool.length) return null;
-      const song = ttsPool[ttsIndex % ttsPool.length];
+      if(!TTS_BANK.length) return null;
+      const song = TTS_BANK[ttsIndex % TTS_BANK.length];
       ttsIndex++;
       return song;
     }
@@ -3115,10 +3188,7 @@ lyrics:s[4]||&#x27;&#x27; }));
       stopAll(); hideAnswer();
       current = pickTtsOnlySong();
       currentMix = [];
-      if(!current){
-        alert(&#x27;입력된 TTS 가사가 없습니다.&#x27;);
-        return;
-      }
+      if(!current){ alert(&#x27;입력된 TTS 가사가 없습니다.&#x27;); return; }
       round++;
       updateStats();
       document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
@@ -3126,6 +3196,7 @@ lyrics:s[4]||&#x27;&#x27; }));
       updateOverlay(false);
       setAnswer(current);
     }
+
     function speakLyrics(){
       if(!current || !(current.lyrics &amp;&amp; String(current.lyrics).trim())) newTtsQuestion();
       const text = (current?.lyrics || current?.tts || &#x27;&#x27;).trim();
@@ -3135,37 +3206,53 @@ lyrics:s[4]||&#x27;&#x27; }));
       u.lang = &#x27;ko-KR&#x27;; u.rate = .92; u.pitch = .75;
       speechSynthesis.speak(u);
     }
+
     function stopTts(){ speechSynthesis.cancel(); }
+
+    function cleanTitle(title){
+      return String(title || &#x27;&#x27;).replace(/\s*\[[^\]]*\]\s*/g,&#x27; &#x27;).replace(/\s*\([^)]*official[^)]*\)\s*/ig,&#x27; &#x27;).replace(/\s+/g,&#x27; &#x27;).trim();
+    }
 
     function setAnswer(data){
       if(Array.isArray(data)){
-        document.getElementById(&#x27;answerMain&#x27;).innerHTML = data.map((s,i)=&gt;`${i+1}. ${s.title}`).join(&#x27;&lt;br&gt;&#x27;);
-        document.getElementById(&#x27;answerSub&#x27;).innerHTML = data.map(s=&gt;`${s.artist} · 영상 ${s.videoId===VIDEO1?&#x27;1&#x27;:&#x27;2&#x27;} · ${fmt(s.start)}`).join(&#x27;&lt;br&gt;&#x27;);
-      }else{
-        document.getElementById(&#x27;answerMain&#x27;).textContent = data.title;
-        document.getElementById(&#x27;answerSub&#x27;).textContent = `${data.artist} · 영상 ${data.videoId===VIDEO1?&#x27;1&#x27;:&#x27;2&#x27;} · ${fmt(data.start)}`;
+        document.getElementById(&#x27;answerMain&#x27;).innerHTML = data.map((s,i)=&gt;`${i+1}. ${cleanTitle(s.title)}`).join(&#x27;&lt;br&gt;&#x27;);
+        document.getElementById(&#x27;answerSub&#x27;).innerHTML = data.map(s=&gt;`${s.artist || &#x27;YouTube&#x27;} · ${s.videoId}`).join(&#x27;&lt;br&gt;&#x27;);
+      }else if(data){
+        document.getElementById(&#x27;answerMain&#x27;).textContent = cleanTitle(data.title);
+        document.getElementById(&#x27;answerSub&#x27;).textContent = `${data.artist || &#x27;YouTube&#x27;} · ${data.videoId || &#x27;TTS&#x27;}`;
       }
     }
+
     function showAnswer(){ document.getElementById(&#x27;answerBox&#x27;).classList.add(&#x27;show&#x27;); updateOverlay(true); }
     function hideAnswer(){ document.getElementById(&#x27;answerBox&#x27;).classList.remove(&#x27;show&#x27;); updateOverlay(false); }
     function markPass(){ showAnswer(); stopAll(); }
+
     function stopAll(){
       clearTimeout(oneTimer); clearTimeout(mixTimer);
       try{player?.pauseVideo?.()}catch(e){}
       mixPlayers.forEach(p=&gt;{try{p.pauseVideo?.()}catch(e){}});
       stopTts();
     }
-    function resetUsed(){ used.clear(); round=0; current=null; currentMix=[]; updateStats(); hideAnswer(); document.getElementById(&#x27;questionNo&#x27;).textContent=&#x27;READY&#x27;; document.getElementById(&#x27;questionHint&#x27;).textContent=&#x27;나온 문제 기록을 초기화했습니다.&#x27;; updateOverlay(false); }
+
+    function resetUsed(){
+      used.clear(); round=0; current=null; currentMix=[]; updateStats(); hideAnswer();
+      document.getElementById(&#x27;questionNo&#x27;).textContent=&#x27;READY&#x27;;
+      document.getElementById(&#x27;questionHint&#x27;).textContent=&#x27;나온 문제 기록을 초기화했습니다.&#x27;;
+      updateOverlay(false);
+    }
+
     function getModeKorean(){
       if(mode===&#x27;one&#x27;) return &#x27;1초듣기&#x27;;
       if(mode===&#x27;mix&#x27;) return &#x27;3곡믹스&#x27;;
       return &#x27;가사듣기&#x27;;
     }
+
     function answerText(){
-      if(currentMix.length) return currentMix.map(s=&gt;s.title).join(&#x27; + &#x27;);
-      if(current) return current.title;
+      if(currentMix.length) return currentMix.map(s=&gt;cleanTitle(s.title)).join(&#x27; + &#x27;);
+      if(current) return cleanTitle(current.title);
       return &#x27;???&#x27;;
     }
+
     function updateOverlay(reveal=false){
       const qText = round ? `${getModeKorean()} ${round}번문제` : `${getModeKorean()} 대기중`;
       const modeEl = document.getElementById(&#x27;overlayMode&#x27;);
@@ -3175,46 +3262,35 @@ lyrics:s[4]||&#x27;&#x27; }));
       if(!modeEl) return;
       modeEl.textContent = qText;
       qEl.textContent = round ? `Q${round}` : &#x27;READY&#x27;;
-      if(mode===&#x27;one&#x27;) hintEl.textContent = &#x27;랜덤 1초 구간 · 실패하면 20초 힌트&#x27;;
-      else if(mode===&#x27;mix&#x27;) hintEl.textContent = &#x27;노래 3곡이 동시에 재생됩니다&#x27;;
+      if(mode===&#x27;one&#x27;) hintEl.textContent = &#x27;${activePlaylist().name} 개별곡 · 랜덤 1초 구간&#x27;;
+      else if(mode===&#x27;mix&#x27;) hintEl.textContent = &#x27;20초부터 노래 3곡이 동시에 재생됩니다&#x27;;
       else hintEl.textContent = &#x27;음정 없이 가사만 읽어주는 문제&#x27;;
       ansEl.innerHTML = `정답: &lt;span&gt;${reveal ? answerText() : &#x27;???&#x27;}&lt;/span&gt;`;
     }
+
     function updateStats(){
-      document.getElementById(&#x27;totalCount&#x27;).textContent=songs.length;
+      document.getElementById(&#x27;totalCount&#x27;).textContent=songs.length || 0;
       document.getElementById(&#x27;roundCount&#x27;).textContent=round;
       document.getElementById(&#x27;usedCount&#x27;).textContent=used.size;
-      document.getElementById(&#x27;remainCount&#x27;).textContent=Math.max(0,songs.length-used.size);
+      document.getElementById(&#x27;remainCount&#x27;).textContent=Math.max(0,(songs.length || 0)-used.size);
     }
+
     function renderList(){
       const q = document.getElementById(&#x27;searchInput&#x27;).value.trim().toLowerCase();
-      const source = document.getElementById(&#x27;sourceFilter&#x27;).value;
-      const filtered = songs.filter(s =&gt; (source===&#x27;all&#x27;||s.videoId===source) &amp;&amp; (!q || (s.title+s.artist).toLowerCase().includes(q)));
-      document.getElementById(&#x27;songList&#x27;).innerHTML = filtered.map((s,i)=&gt;`
+      const filtered = songs.filter(s =&gt; !q || (s.title+s.artist+s.videoId).toLowerCase().includes(q));
+      document.getElementById(&#x27;songList&#x27;).innerHTML = filtered.slice(0,220).map((s,i)=&gt;`
         &lt;div class=&quot;song-row&quot;&gt;
-          &lt;div class=&quot;idx&quot;&gt;${String(i+1).padStart(2,&#x27;0&#x27;)}&lt;/div&gt;
-          &lt;div&gt;&lt;div class=&quot;name&quot;&gt;${s.title}&lt;/div&gt;&lt;div class=&quot;artist&quot;&gt;${s.artist} · 영상 ${s.videoId===VIDEO1?&#x27;1&#x27;:&#x27;2&#x27;}&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;idx&quot;&gt;${String(s.id).padStart(3,&#x27;0&#x27;)}&lt;/div&gt;
+          &lt;div&gt;&lt;div class=&quot;name&quot;&gt;${cleanTitle(s.title)}&lt;/div&gt;&lt;div class=&quot;artist&quot;&gt;${s.sourceName || activePlaylist().name} · ${s.artist || &#x27;YouTube&#x27;} · ${s.videoId}&lt;/div&gt;&lt;/div&gt;
           &lt;div class=&quot;time&quot;&gt;${fmt(s.start)}&lt;/div&gt;
         &lt;/div&gt;
-      `).join(&#x27;&#x27;);
+      `).join(&#x27;&#x27;) + (filtered.length&gt;220 ? `&lt;div class=&quot;song-row&quot;&gt;&lt;div class=&quot;idx&quot;&gt;+&lt;/div&gt;&lt;div&gt;&lt;div class=&quot;name&quot;&gt;${filtered.length-220}곡 더 있음&lt;/div&gt;&lt;div class=&quot;artist&quot;&gt;검색어를 입력하면 좁혀집니다&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;time&quot;&gt;&lt;/div&gt;&lt;/div&gt;` : &#x27;&#x27;);
     }
+
     updateStats(); renderList(); updateOverlay(false);
   &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-
-&lt;script&gt;
-window.__ttsIndex=0;
-if(typeof pickTtsSong===&#x27;function&#x27;){
-  pickTtsSong=function(){
-    const arr=songs.filter(s=&gt;s.lyrics&amp;&amp;String(s.lyrics).trim());
-    if(!arr.length) return null;
-    const song=arr[window.__ttsIndex % arr.length];
-    window.__ttsIndex++;
-    return song;
-  }
-}
-&lt;/script&gt;
 " allow="autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>
       </div>
     </section>

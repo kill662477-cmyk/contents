@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>캄몬 컨텐츠 오버레이</title>
 <!-- 정리 기준: v10_cleanup / 탭별 원위치 수정, 송출 버튼 제거 유지, Firebase 연동 대비 state-render 구조 보강 -->
-<!-- 배포 기준: https://contents-mu.vercel.app/ / Firebase room 분리, overlay 읽기전용, OBS 오디오 플레이어 유지, 노래 가사 리스트 보정 / 영화 자동재생 차단, 노래 재생 재시도 보강 -->
+<!-- 배포 기준: https://contents-mu.vercel.app/ / Firebase room 분리, overlay 읽기전용, OBS 오디오 플레이어 유지, 노래 가사 리스트 보정 -->
 <style>
   *{box-sizing:border-box}
 
@@ -2996,7 +2996,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       <div class="songquiz-object-overlay" aria-label="노래맞추기 오버레이">
         <div class="songquiz-object-mode">1초듣기 대기중</div>
         <div class="songquiz-object-ready">READY</div>
-        <div class="songquiz-object-desc">전체 개별곡 · 2초부터 1.5초 구간</div>
+        <div class="songquiz-object-desc">전체 개별곡 · 1초부터 1초 구간</div>
         <div class="songquiz-object-answer">정답: <span>???</span></div>
       </div>
         <iframe class="songquiz-embed-frame" title="노래 맞추기" srcdoc="&lt;!DOCTYPE html&gt;
@@ -3093,7 +3093,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     &lt;section class=&quot;hero&quot;&gt;
       &lt;div&gt;
         &lt;h1&gt;노래 맞추기 테스트&lt;/h1&gt;
-        &lt;p&gt;유튜브 플레이리스트 기반 · 전체/00/10/20년 선택 · 1.5초/20초 힌트 · 3곡 믹스&lt;/p&gt;
+        &lt;p&gt;유튜브 플레이리스트 기반 · 전체/00/10/20년 선택 · 1초/20초 힌트 · 3곡 믹스&lt;/p&gt;
       &lt;/div&gt;
       &lt;div class=&quot;stats&quot;&gt;
         &lt;div class=&quot;pill&quot;&gt;플레이리스트&lt;/div&gt;
@@ -3458,40 +3458,29 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       });
     }
 
-    function forcePlayClip(p, song, start, stopMs, volume=70){
-      if(!p || !song) return;
-      const attempts = [0, 120, 320, 650];
-      const videoId = song.videoId;
-      attempts.forEach((delay, n)=&gt;{
-        setTimeout(()=&gt;{
-          try{
-            p.setVolume?.(volume);
-            const currentId = p.getVideoData?.()?.video_id || &#x27;&#x27;;
-            if(n === 0 || currentId !== videoId){
-              p.loadVideoById({videoId,startSeconds:start});
-            }else{
-              p.seekTo?.(start,true);
-              p.playVideo?.();
-            }
-            setTimeout(()=&gt;syncCurrentMeta(p,song), 350);
-          }catch(e){
-            try{ p.loadVideoById({videoId,startSeconds:start}); }catch(_e){}
-            setTimeout(()=&gt;{ try{ p.playVideo?.(); }catch(_e){} }, 120);
-          }
-        }, delay);
-      });
-      return setTimeout(()=&gt;{ try{ p.pauseVideo?.(); }catch(e){} }, stopMs);
-    }
-
     function playPreparedMix(seconds){
       if(!currentMix.length) newMixQuestion();
       if(currentMix.length &lt; 3) return;
       clearTimeout(mixTimer);
       currentMix.forEach((s,i)=&gt;{
         const p = mixPlayers[i];
-        setTimeout(()=&gt;forcePlayClip(p, s, MIX_START_SEC, seconds*1000, 42), i * 180);
+        if(!p) return;
+        setTimeout(()=&gt;{
+          try{
+            p.setVolume?.(42);
+            if(p.getVideoData?.()?.video_id !== s.videoId){
+              p.loadVideoById({videoId:s.videoId,startSeconds:MIX_START_SEC});
+            }else{
+              p.seekTo?.(MIX_START_SEC,true);
+              p.playVideo?.();
+            }
+            setTimeout(()=&gt;syncCurrentMeta(p,s), 500);
+          }catch(e){
+            try{ p.loadVideoById({videoId:s.videoId,startSeconds:MIX_START_SEC}); p.playVideo?.(); }catch(_e){}
+          }
+        }, i * 180);
       });
-      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;{try{p.pauseVideo?.()}catch(e){}}), (seconds*1000)+900);
+      mixTimer=setTimeout(()=&gt;mixPlayers.forEach(p=&gt;{try{p.pauseVideo?.()}catch(e){}}), seconds*1000);
     }
 
     function newOneQuestion(){
@@ -3509,14 +3498,21 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       if(!current) newOneQuestion();
       if(!player || !current) return;
       clearTimeout(oneTimer);
-      oneTimer = forcePlayClip(player, current, current.playAt || ONE_SECOND_START_SEC, 1500, 80);
+      player.loadVideoById({videoId:current.videoId,startSeconds:current.playAt});
+      player.playVideo();
+      setTimeout(()=&gt;syncCurrentMeta(player,current), 500);
+      oneTimer=setTimeout(()=&gt;player.pauseVideo(),1500);
     }
 
     function playTwentySeconds(){
       if(!current) newOneQuestion();
       if(!player || !current) return;
       clearTimeout(oneTimer);
-      oneTimer = forcePlayClip(player, current, DEFAULT_START_SEC, ONE_HINT_SECONDS*1000, 80);
+      const start = DEFAULT_START_SEC;
+      player.loadVideoById({videoId:current.videoId,startSeconds:start});
+      player.playVideo();
+      setTimeout(()=&gt;syncCurrentMeta(player,current), 500);
+      oneTimer=setTimeout(()=&gt;player.pauseVideo(),ONE_HINT_SECONDS*1000);
     }
 
     function newMixQuestion(){
@@ -3802,7 +3798,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-></iframe>
+"></iframe>
       </div>
     </section>
     <section class="content-view" data-view="mafia">
@@ -5968,6 +5964,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   let idx = 0;
   let movieRealtimeApplying = false;
   let lastMovieEventId = '';
+  const movieRealtimeStartedAt = Date.now();
 
   function el(id){ return document.getElementById(id); }
   function makeEventId(){ return `${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
@@ -6018,10 +6015,8 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     const player = el('movieQuotePlayer');
     if(player){
       if(autoplay){
-        const origin = encodeURIComponent(window.location.origin || 'https://contents-mu.vercel.app');
-        player.src = `https://www.youtube.com/embed/xQ9skQV3-DU?start=${m.start}&end=${m.start + 5}&rel=0&playsinline=1&enablejsapi=1&autoplay=1&mute=0&origin=${origin}&t=${Date.now()}`;
+        player.src = `https://www.youtube.com/embed/xQ9skQV3-DU?start=${m.start}&end=${m.start + 5}&rel=0&playsinline=1&enablejsapi=1&autoplay=1&mute=0`;
       }else{
-        // 문제 선택/초기 진입 때는 영상이 자동 재생되지 않도록 플레이어를 비워둔다.
         player.src = 'about:blank';
       }
     }
@@ -6040,6 +6035,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   function applyMovieEvent(event){
     if(!event || !event.id || event.id === lastMovieEventId) return;
     lastMovieEventId = event.id;
+    if(event.createdAt && event.createdAt < movieRealtimeStartedAt - 1000) return;
     const payload = event.payload || {};
     movieRealtimeApplying = true;
     if(event.type === 'play') setMovie(Number(payload.idx ?? idx), true, true);
@@ -6077,7 +6073,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   const SONG_EVENT_PATH = 'overlays/songquiz/event';
   let songRealtimeApplying = false;
   let lastSongEventId = '';
-  const songRealtimeBootAt = Date.now();
+  const songRealtimeStartedAt = Date.now();
 
   function getSongFrame(){ return document.querySelector('.songquiz-embed-frame'); }
   function getSongBridge(){
@@ -6140,12 +6136,8 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     });
     window.KAMMON_REALTIME.listen(SONG_EVENT_PATH, event=>{
       if(!event || !event.id || event.id === lastSongEventId) return;
-      const createdAt = Number(event.createdAt || 0);
-      if(createdAt && createdAt < songRealtimeBootAt - 800){
-        lastSongEventId = event.id;
-        return;
-      }
       lastSongEventId = event.id;
+      if(event.createdAt && event.createdAt < songRealtimeStartedAt - 1000) return;
       sendToSongFrame('event', event);
     });
   }

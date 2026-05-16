@@ -2996,7 +2996,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       <div class="songquiz-object-overlay" aria-label="노래맞추기 오버레이">
         <div class="songquiz-object-mode">1초듣기 대기중</div>
         <div class="songquiz-object-ready">READY</div>
-        <div class="songquiz-object-desc">전체 개별곡 · 1초부터 1초 구간</div>
+        <div class="songquiz-object-desc">전체 개별곡 · 2초부터 1.5초 구간</div>
         <div class="songquiz-object-answer">정답: <span>???</span></div>
       </div>
         <iframe class="songquiz-embed-frame" title="노래 맞추기" srcdoc="&lt;!DOCTYPE html&gt;
@@ -3093,7 +3093,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     &lt;section class=&quot;hero&quot;&gt;
       &lt;div&gt;
         &lt;h1&gt;노래 맞추기 테스트&lt;/h1&gt;
-        &lt;p&gt;유튜브 플레이리스트 기반 · 전체/00/10/20년 선택 · 1초/20초 힌트 · 3곡 믹스&lt;/p&gt;
+        &lt;p&gt;유튜브 플레이리스트 기반 · 전체/00/10/20년 선택 · 1.5초/20초 힌트 · 3곡 믹스&lt;/p&gt;
       &lt;/div&gt;
       &lt;div class=&quot;stats&quot;&gt;
         &lt;div class=&quot;pill&quot;&gt;플레이리스트&lt;/div&gt;
@@ -3223,7 +3223,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       return PLAYLISTS.find(p=&gt;p.key===activePlaylistKey) || PLAYLISTS[0];
     }
     const DEFAULT_START_SEC = 20;
-    const ONE_SECOND_START_SEC = 1;
+    const ONE_SECOND_START_SEC = 2;
     const MIX_START_SEC = 20;
     const ONE_HINT_SECONDS = 20;
     const MIX_PLAY_SECONDS = 30;
@@ -3499,7 +3499,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       if(!current) return;
       current.playAt = ONE_SECOND_START_SEC;
       document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
-      document.getElementById(&#x27;questionHint&#x27;).textContent = `${activePlaylist().name} 개별곡 · 문제만 준비됨 · 재생 버튼을 누르면 1초부터 1초 재생`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = `${activePlaylist().name} 개별곡 · 문제만 준비됨 · 재생 버튼을 누르면 2초부터 1.5초 재생`;
       updateOverlay(false);
       loadSongToPlayer(current, player, current.playAt);
       setAnswer(current);
@@ -3509,7 +3509,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       if(!current) newOneQuestion();
       if(!player || !current) return;
       clearTimeout(oneTimer);
-      oneTimer = forcePlayClip(player, current, current.playAt || ONE_SECOND_START_SEC, 1350, 80);
+      oneTimer = forcePlayClip(player, current, current.playAt || ONE_SECOND_START_SEC, 1500, 80);
     }
 
     function playTwentySeconds(){
@@ -3622,7 +3622,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       if(!modeEl) return;
       modeEl.textContent = qText;
       qEl.textContent = round ? `Q${round}` : &#x27;READY&#x27;;
-      if(mode===&#x27;one&#x27;) hintEl.textContent = `${activePlaylist().name} 개별곡 · 1초부터 1초 구간`;
+      if(mode===&#x27;one&#x27;) hintEl.textContent = `${activePlaylist().name} 개별곡 · 2초부터 1.5초 구간`;
       else if(mode===&#x27;mix&#x27;) hintEl.textContent = &#x27;20초부터 노래 3곡이 동시에 재생됩니다&#x27;;
       else hintEl.textContent = &#x27;음정 없이 가사만 읽어주는 문제&#x27;;
       ansEl.innerHTML = `정답: &lt;span&gt;${reveal ? answerText() : &#x27;???&#x27;}&lt;/span&gt;`;
@@ -3802,7 +3802,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-"></iframe>
+></iframe>
       </div>
     </section>
     <section class="content-view" data-view="mafia">
@@ -5968,9 +5968,6 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   let idx = 0;
   let movieRealtimeApplying = false;
   let lastMovieEventId = '';
-  // 배포/새로고침 직후 Firebase에 남아있는 마지막 play 이벤트가 재실행되며
-  // 첫 번째 영상이 자동재생되는 문제 방지용 기준 시각
-  const movieQuoteBootAt = Date.now();
 
   function el(id){ return document.getElementById(id); }
   function makeEventId(){ return `${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
@@ -6042,15 +6039,6 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
 
   function applyMovieEvent(event){
     if(!event || !event.id || event.id === lastMovieEventId) return;
-
-    // onValue는 접속 직후 DB에 남아있는 마지막 이벤트도 한 번 내려준다.
-    // 그 이벤트가 과거 play 이벤트면 페이지 오픈만 해도 첫 영상이 자동재생되므로 무시한다.
-    const createdAt = Number(event.createdAt || 0);
-    if(createdAt && createdAt < movieQuoteBootAt - 500){
-      lastMovieEventId = event.id;
-      return;
-    }
-
     lastMovieEventId = event.id;
     const payload = event.payload || {};
     movieRealtimeApplying = true;
@@ -6073,8 +6061,6 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     if(el('movieQuoteHideBtn')) el('movieQuoteHideBtn').onclick = ()=>{ setAnswerVisible(false); commitMovieState('hideAnswer', {idx}); };
     if(el('movieQuoteNextBtn')) el('movieQuoteNextBtn').onclick = ()=>setMovie(idx + 1, true);
     setMovie(0, false, true);
-    const player = el('movieQuotePlayer');
-    if(player) player.src = 'about:blank';
     initRealtime();
   }
 
@@ -6091,6 +6077,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   const SONG_EVENT_PATH = 'overlays/songquiz/event';
   let songRealtimeApplying = false;
   let lastSongEventId = '';
+  const songRealtimeBootAt = Date.now();
 
   function getSongFrame(){ return document.querySelector('.songquiz-embed-frame'); }
   function getSongBridge(){
@@ -6153,6 +6140,11 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     });
     window.KAMMON_REALTIME.listen(SONG_EVENT_PATH, event=>{
       if(!event || !event.id || event.id === lastSongEventId) return;
+      const createdAt = Number(event.createdAt || 0);
+      if(createdAt && createdAt < songRealtimeBootAt - 800){
+        lastSongEventId = event.id;
+        return;
+      }
       lastSongEventId = event.id;
       sendToSongFrame('event', event);
     });

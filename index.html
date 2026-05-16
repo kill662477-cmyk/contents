@@ -2800,7 +2800,7 @@
     &lt;section class=&quot;hero&quot;&gt;
       &lt;div&gt;
         &lt;h1&gt;노래 맞추기 테스트&lt;/h1&gt;
-        &lt;p&gt;유튜브 플레이리스트 기반 · 1초/20초 힌트 · 3곡 믹스 · 직접입력 가사 데이터형&lt;/p&gt;
+        &lt;p&gt;유튜브 플레이리스트 기반 · 전체/00/10/20년 선택 · 1초/20초 힌트 · 3곡 믹스&lt;/p&gt;
       &lt;/div&gt;
       &lt;div class=&quot;stats&quot;&gt;
         &lt;div class=&quot;pill&quot;&gt;플레이리스트&lt;/div&gt;
@@ -2887,6 +2887,7 @@
             &lt;div class=&quot;field&quot;&gt;
               &lt;label&gt;출제 영상&lt;/label&gt;
               &lt;select id=&quot;sourceFilter&quot; onchange=&quot;changePlaylist(this.value)&quot;&gt;
+                &lt;option value=&quot;all&quot; selected&gt;전체&lt;/option&gt;
                 &lt;option value=&quot;00s&quot;&gt;00년대&lt;/option&gt;
                 &lt;option value=&quot;10s&quot;&gt;10년대&lt;/option&gt;
                 &lt;option value=&quot;20s&quot;&gt;20년대&lt;/option&gt;
@@ -2915,16 +2916,22 @@
   &lt;script src=&quot;https://www.youtube.com/iframe_api&quot;&gt;&lt;/script&gt;
   &lt;script&gt;
     const PLAYLISTS = [
+      {key:&#x27;all&#x27;, name:&#x27;전체&#x27;, playlistIds:[
+        &#x27;PLooeWILrVByL5_q0cGVJ4EFV_I6dM-VBI&#x27;,
+        &#x27;PLGR97r28jSO6Uo9ZarSNbbnN2kxjlVdeT&#x27;,
+        &#x27;PLLDEpvvWcsdRW8YmPQVDbwrnrOcHyAVvY&#x27;
+      ]},
       {key:&#x27;00s&#x27;, name:&#x27;00년대&#x27;, playlistId:&#x27;PLooeWILrVByL5_q0cGVJ4EFV_I6dM-VBI&#x27;},
       {key:&#x27;10s&#x27;, name:&#x27;10년대&#x27;, playlistId:&#x27;PLGR97r28jSO6Uo9ZarSNbbnN2kxjlVdeT&#x27;},
       {key:&#x27;20s&#x27;, name:&#x27;20년대&#x27;, playlistId:&#x27;PLLDEpvvWcsdRW8YmPQVDbwrnrOcHyAVvY&#x27;}
     ];
-    let activePlaylistKey = &#x27;00s&#x27;;
+    let activePlaylistKey = &#x27;all&#x27;;
     function activePlaylist(){
       return PLAYLISTS.find(p=&gt;p.key===activePlaylistKey) || PLAYLISTS[0];
     }
     const DEFAULT_START_SEC = 20;
-    const ONE_SECOND_RANGE = [20, 55];
+    const ONE_SECOND_START_SEC = 1;
+    const MIX_START_SEC = 20;
     const ONE_HINT_SECONDS = 20;
     const MIX_PLAY_SECONDS = 30;
     const MIX_HINT_SECONDS = 90;
@@ -2957,7 +2964,7 @@
 
     function onYouTubeIframeAPIReady(){
       player = new YT.Player(&#x27;player&#x27;, {
-        playerVars:{listType:&#x27;playlist&#x27;,list:activePlaylist().playlistId,controls:1,rel:0,modestbranding:1,playsinline:1},
+        playerVars:{listType:&#x27;playlist&#x27;,list:(PLAYLISTS.find(p=&gt;p.key===&#x27;00s&#x27;)||PLAYLISTS[1]).playlistId,controls:1,rel:0,modestbranding:1,playsinline:1},
         events:{
           onReady:()=&gt;{ ready=true; loadPlaylistSongs(); },
           onStateChange:e=&gt;{ if(e.data===YT.PlayerState.PLAYING) syncCurrentMeta(player,current); }
@@ -2992,9 +2999,13 @@
       hideAnswer();
       document.getElementById(&#x27;questionNo&#x27;).textContent=&#x27;READY&#x27;;
       document.getElementById(&#x27;questionHint&#x27;).textContent=`${pl.name} 플레이리스트 로딩중입니다.`;
-      player.cuePlaylist({list:pl.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC});
-      setTimeout(buildSongsFromPlaylist, 1200);
-      setTimeout(buildSongsFromPlaylist, 3200);
+      if(pl.playlistIds){
+        loadCombinedPlaylists(pl);
+      }else{
+        player.cuePlaylist({list:pl.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC});
+        setTimeout(()=&gt;buildSongsFromPlaylist(pl), 1200);
+        setTimeout(()=&gt;buildSongsFromPlaylist(pl), 3200);
+      }
     }
 
     function changePlaylist(key){
@@ -3005,19 +3016,12 @@
       updateOverlay(false);
     }
 
-    function buildSongsFromPlaylist(){
-      if(!player || !player.getPlaylist) return;
-      const pl = activePlaylist();
-      const ids = player.getPlaylist() || [];
-      if(!ids.length){
-        document.getElementById(&#x27;questionHint&#x27;).textContent=`${pl.name} 플레이리스트 로딩중입니다. 잠시 후 다시 눌러주세요.`;
-        return;
-      }
-      songs = ids.map((videoId,i)=&gt;({
-        id:i+1,
-        sourceKey:pl.key,
-        sourceName:pl.name,
-        title:`${pl.name} ${String(i+1).padStart(3,&#x27;0&#x27;)}`,
+    function makeSongsFromIds(ids, source, idOffset=0){
+      return (ids || []).map((videoId,i)=&gt;({
+        id:idOffset+i+1,
+        sourceKey:source.key,
+        sourceName:source.name,
+        title:`${source.name} ${String(i+1).padStart(3,&#x27;0&#x27;)}`,
         artist:&#x27;YouTube&#x27;,
         videoId,
         start:DEFAULT_START_SEC,
@@ -3025,9 +3029,39 @@
         thumb:`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
         lyrics:&#x27;&#x27;
       }));
+    }
+
+    function buildSongsFromPlaylist(source=activePlaylist()){
+      if(!player || !player.getPlaylist) return;
+      const ids = player.getPlaylist() || [];
+      if(!ids.length){
+        document.getElementById(&#x27;questionHint&#x27;).textContent=`${source.name} 플레이리스트 로딩중입니다. 잠시 후 다시 눌러주세요.`;
+        return;
+      }
+      songs = makeSongsFromIds(ids, source);
       updateStats();
       renderList();
-      document.getElementById(&#x27;questionHint&#x27;).textContent=`${pl.name} ${songs.length}곡 로드 완료 · 새 문제를 누르면 랜덤 출제됩니다.`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent=`${source.name} ${songs.length}곡 로드 완료 · 새 문제를 누르면 랜덤 출제됩니다.`;
+    }
+
+    async function loadCombinedPlaylists(pl){
+      const sources = PLAYLISTS.filter(p=&gt;p.key !== &#x27;all&#x27; &amp;&amp; pl.playlistIds.includes(p.playlistId));
+      const merged = [];
+      for(const source of sources){
+        document.getElementById(&#x27;questionHint&#x27;).textContent=`전체 모드: ${source.name} 불러오는 중...`;
+        player.cuePlaylist({list:source.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC});
+        await new Promise(resolve=&gt;setTimeout(resolve, 1400));
+        let ids = player.getPlaylist() || [];
+        if(!ids.length){
+          await new Promise(resolve=&gt;setTimeout(resolve, 1800));
+          ids = player.getPlaylist() || [];
+        }
+        merged.push(...makeSongsFromIds(ids, source, merged.length));
+      }
+      songs = merged;
+      updateStats();
+      renderList();
+      document.getElementById(&#x27;questionHint&#x27;).textContent=`전체 ${songs.length}곡 로드 완료 · 00/10/20년대 통합 랜덤 출제됩니다.`;
     }
 
     function sample(arr, n=1){
@@ -3103,10 +3137,9 @@
     function newOneQuestion(){
       stopAll(); hideAnswer(); current = pickOne(); currentMix=[];
       if(!current) return;
-      const offset = ONE_SECOND_RANGE[0] + Math.floor(Math.random()*(ONE_SECOND_RANGE[1]-ONE_SECOND_RANGE[0]+1));
-      current.playAt = offset;
+      current.playAt = ONE_SECOND_START_SEC;
       document.getElementById(&#x27;questionNo&#x27;).textContent = `Q${round}`;
-      document.getElementById(&#x27;questionHint&#x27;).textContent = `${activePlaylist().name} 개별곡 · 랜덤 1초 구간 준비됨 · 실패하면 20초 힌트`;
+      document.getElementById(&#x27;questionHint&#x27;).textContent = `${activePlaylist().name} 개별곡 · 1초부터 1초 구간 준비됨 · 실패하면 20초 힌트`;
       updateOverlay(false);
       loadSongToPlayer(current, player, current.playAt);
       setAnswer(current);
@@ -3140,7 +3173,7 @@
       document.getElementById(&#x27;questionHint&#x27;).textContent = `플레이리스트에서 서로 다른 3곡을 동시에 맞히는 문제`;
       updateOverlay(false);
       currentMix.forEach((s,i)=&gt;{
-        s.playAt = DEFAULT_START_SEC;
+        s.playAt = MIX_START_SEC;
         mixPlayers[i]?.loadVideoById({videoId:s.videoId,startSeconds:s.playAt});
         setTimeout(()=&gt;{ try{ mixPlayers[i]?.pauseVideo?.(); syncCurrentMeta(mixPlayers[i],s); }catch(e){} }, 750);
       });
@@ -3154,7 +3187,7 @@
       currentMix.forEach((s,i)=&gt;{
         const p = mixPlayers[i];
         if(!p) return;
-        p.loadVideoById({videoId:s.videoId,startSeconds:DEFAULT_START_SEC});
+        p.loadVideoById({videoId:s.videoId,startSeconds:MIX_START_SEC});
         p.setVolume?.(42);
         p.playVideo?.();
         setTimeout(()=&gt;syncCurrentMeta(p,s), 500);
@@ -3169,7 +3202,7 @@
       currentMix.forEach((s,i)=&gt;{
         const p = mixPlayers[i];
         if(!p) return;
-        p.loadVideoById({videoId:s.videoId,startSeconds:DEFAULT_START_SEC});
+        p.loadVideoById({videoId:s.videoId,startSeconds:MIX_START_SEC});
         p.setVolume?.(40);
         p.playVideo?.();
         setTimeout(()=&gt;syncCurrentMeta(p,s), 500);
@@ -3262,7 +3295,7 @@
       if(!modeEl) return;
       modeEl.textContent = qText;
       qEl.textContent = round ? `Q${round}` : &#x27;READY&#x27;;
-      if(mode===&#x27;one&#x27;) hintEl.textContent = &#x27;${activePlaylist().name} 개별곡 · 랜덤 1초 구간&#x27;;
+      if(mode===&#x27;one&#x27;) hintEl.textContent = `${activePlaylist().name} 개별곡 · 1초부터 1초 구간`;
       else if(mode===&#x27;mix&#x27;) hintEl.textContent = &#x27;20초부터 노래 3곡이 동시에 재생됩니다&#x27;;
       else hintEl.textContent = &#x27;음정 없이 가사만 읽어주는 문제&#x27;;
       ansEl.innerHTML = `정답: &lt;span&gt;${reveal ? answerText() : &#x27;???&#x27;}&lt;/span&gt;`;

@@ -2559,6 +2559,158 @@
 
 
 
+
+/* === overlay view + per-tab copy buttons === */
+.overlay-copy-btn{
+  position:absolute;
+  right:14px;
+  top:14px;
+  z-index:999999;
+  border:0;
+  border-radius:10px;
+  padding:9px 13px;
+  background:#1f6dff;
+  color:#fff;
+  font-size:12px;
+  font-weight:1000;
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(0,0,0,.42);
+  pointer-events:auto;
+}
+.overlay-copy-btn:hover{filter:brightness(1.08)}
+body.overlay-mode{
+  margin:0 !important;
+  overflow:hidden !important;
+  background:#00FF00 !important;
+}
+body.overlay-mode .shell{
+  width:100vw !important;
+  height:100vh !important;
+  background:#00FF00 !important;
+}
+body.overlay-mode .side-tabs,
+body.overlay-mode .capture-guide,
+body.overlay-mode .overlay-copy-btn{
+  display:none !important;
+}
+body.overlay-mode .stage{
+  width:100vw !important;
+  height:100vh !important;
+  flex:1 1 100vw !important;
+  background:#00FF00 !important;
+}
+body.overlay-mode .content-view{
+  display:none !important;
+  inset:0 !important;
+  background:#00FF00 !important;
+}
+body.overlay-mode .content-view.overlay-active{
+  display:block !important;
+}
+body.overlay-mode .setup,
+body.overlay-mode .controls,
+body.overlay-mode .mafia-setup,
+body.overlay-mode .mafia-death-control-bar,
+body.overlay-mode .mafia-control-actions,
+body.overlay-mode .balance-setup,
+body.overlay-mode .balance-manager-panel,
+body.overlay-mode .balance-nav-panel,
+body.overlay-mode .moviequote-admin-panel{
+  display:none !important;
+}
+body.overlay-mode .mafia-live,
+body.overlay-mode .balance-live{
+  display:block !important;
+}
+body.overlay-mode .moviequote-page{
+  display:block !important;
+  background:#00FF00 !important;
+}
+body.overlay-mode .moviequote-stage{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  background:#00FF00 !important;
+}
+body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-camera-zone,
+body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-floating-title{
+  display:none !important;
+}
+body.overlay-mode[data-overlay-target="anonymouschat"] .anonymous-phone-wrap{
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  transform:translate(-50%,-50%) !important;
+}
+
+
+/* === exact songquiz object overlay === */
+body.overlay-mode[data-overlay-target="songquiz"] .songquiz-embed-wrap{
+  position:fixed !important;
+  inset:0 !important;
+  background:#00FF00 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+body.overlay-mode[data-overlay-target="songquiz"] .songquiz-embed-frame{
+  display:none !important;
+}
+.songquiz-object-overlay{
+  display:none;
+}
+body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
+  display:flex !important;
+  width:474px;
+  height:310px;
+  border-radius:24px;
+  background:#0b252b;
+  border:3px solid rgba(24,185,82,.95);
+  box-shadow:0 0 0 1px rgba(0,0,0,.35) inset;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  text-align:center;
+  font-family:Arial,"Pretendard","Noto Sans KR",sans-serif;
+  color:#fff;
+  overflow:hidden;
+}
+.songquiz-object-mode{
+  font-size:34px;
+  line-height:1;
+  font-weight:1000;
+  color:#ffc928;
+  letter-spacing:-1.2px;
+  margin-bottom:36px;
+}
+.songquiz-object-ready{
+  font-size:70px;
+  line-height:.9;
+  font-weight:1000;
+  color:#fff;
+  letter-spacing:-2px;
+  margin-bottom:30px;
+}
+.songquiz-object-desc{
+  font-size:24px;
+  line-height:1.1;
+  font-weight:1000;
+  color:#d8e6ff;
+  letter-spacing:-1.1px;
+  margin-bottom:24px;
+}
+.songquiz-object-answer{
+  font-size:28px;
+  line-height:1;
+  font-weight:1000;
+  color:#fff;
+  letter-spacing:-1px;
+}
+.songquiz-object-answer span{
+  color:#ffc928;
+}
+
 </style>
 </head>
 <body>
@@ -2579,6 +2731,7 @@
   <main class="stage" id="captureStage">
     <div class="capture-guide">오른쪽 영역만 캡처 → 프릭샷 크로마키 색상 #00FF00</div>
     <section class="content-view active" data-view="starmarble">
+      <button class="overlay-copy-btn" data-overlay-copy="starmarble" type="button" onclick="copyOverlayUrl('starmarble')">스타마블 오버레이 주소 복사</button>
       <div id="app">
         <div class="board" id="board"></div>
         <div class="piece-layer" id="pieceLayer"></div>
@@ -2626,6 +2779,7 @@
 
 
     <section class="content-view" data-view="moviequote">
+      <button class="overlay-copy-btn" data-overlay-copy="moviequote" type="button" onclick="copyOverlayUrl('moviequote')">영화명대사 오버레이 주소 복사</button>
       <div class="moviequote-embed-wrap">
         <div class="moviequote-page">
           <aside class="moviequote-admin-panel">
@@ -2705,7 +2859,14 @@
     </section>
 
     <section class="content-view" data-view="songquiz">
+      <button class="overlay-copy-btn" data-overlay-copy="songquiz" type="button" onclick="copyOverlayUrl('songquiz')">노래맞추기 오버레이 주소 복사</button>
       <div class="songquiz-embed-wrap">
+      <div class="songquiz-object-overlay" aria-label="노래맞추기 오버레이">
+        <div class="songquiz-object-mode">1초듣기 대기중</div>
+        <div class="songquiz-object-ready">READY</div>
+        <div class="songquiz-object-desc">전체 개별곡 · 1초부터 1초 구간</div>
+        <div class="songquiz-object-answer">정답: <span>???</span></div>
+      </div>
         <iframe class="songquiz-embed-frame" title="노래 맞추기" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;ko&quot;&gt;
 &lt;head&gt;
@@ -3358,6 +3519,7 @@
       </div>
     </section>
     <section class="content-view" data-view="mafia">
+      <button class="overlay-copy-btn" data-overlay-copy="mafia" type="button" onclick="copyOverlayUrl('mafia')">마피아 오버레이 주소 복사</button>
       <div class="mafia-game" id="mafiaGame">
         <div class="mafia-setup" id="mafiaSetup">
           <div class="mafia-setup-card">
@@ -3441,6 +3603,7 @@
     </section>
 
     <section class="content-view" data-view="anonymouschat">
+      <button class="overlay-copy-btn" data-overlay-copy="anonymouschat" type="button" onclick="copyOverlayUrl('anonymouschat')">익명카톡 오버레이 주소 복사</button>
       <div class="anonymous-chat">
         <div class="anonymous-floating-title">오픈 익명카톡 · 텔레그램 사용 예정 그냥 오픈카톡방 사용가능, 이건 필요시 제작</div>
         <div class="anonymous-camera-zone left"></div>
@@ -3509,6 +3672,7 @@
     </section>
 
 <section class="content-view" data-view="balance">
+      <button class="overlay-copy-btn" data-overlay-copy="balance" type="button" onclick="copyOverlayUrl('balance')">밸런스토론 오버레이 주소 복사</button>
       <div class="balance-debate" id="balanceDebate">
         <div class="balance-setup" id="balanceSetup">
           <div class="balance-setup-card">
@@ -5309,6 +5473,68 @@
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+})();
+</script>
+
+
+<script>
+(function(){
+  const TARGET_LABELS = {
+    starmarble:'스타마블',
+    songquiz:'노래맞추기',
+    moviequote:'영화명대사',
+    balance:'밸런스토론',
+    mafia:'마피아',
+    anonymouschat:'익명카톡'
+  };
+
+  window.copyOverlayUrl = function(target){
+    const url = location.origin + location.pathname + '?view=overlay&target=' + encodeURIComponent(target);
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(()=>{
+        alert((TARGET_LABELS[target] || target) + ' 오버레이 주소 복사 완료\n' + url);
+      }).catch(()=>{
+        prompt('복사 실패. 아래 주소를 직접 복사하세요.', url);
+      });
+    }else{
+      prompt('아래 주소를 복사하세요.', url);
+    }
+  };
+
+  function applyOverlayView(){
+    const params = new URLSearchParams(location.search);
+    if(params.get('view') !== 'overlay') return;
+
+    const target = params.get('target') || 'starmarble';
+    document.body.classList.add('broadcast','overlay-mode');
+    document.body.setAttribute('data-overlay-target', target);
+
+    document.querySelectorAll('.content-view').forEach(section=>{
+      const isTarget = section.dataset.view === target;
+      section.classList.toggle('active', isTarget);
+      section.classList.toggle('overlay-active', isTarget);
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.tab === target);
+    });
+
+    if(target === 'balance'){
+      const el = document.querySelector('.balance-debate');
+      if(el) el.classList.add('is-live');
+    }
+
+    if(target === 'mafia'){
+      const el = document.querySelector('.mafia-game');
+      if(el) el.classList.add('is-live');
+    }
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', applyOverlayView);
+  }else{
+    applyOverlayView();
+  }
 })();
 </script>
 

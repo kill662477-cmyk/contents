@@ -3255,9 +3255,21 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     let player, mixPlayers = [], mode=&#x27;one&#x27;, current=null, currentMix=[], used = new Set(), round=0, ready=false;
     let oneTimer=null, mixTimer=null, ttsIndex=0;
 
+    function getYouTubeOrigin(){
+      try{
+        if(window.parent &amp;&amp; window.parent.location &amp;&amp; window.parent.location.origin &amp;&amp; window.parent.location.origin !== &#x27;null&#x27;) return window.parent.location.origin;
+      }catch(e){}
+      try{
+        if(window.location &amp;&amp; window.location.origin &amp;&amp; window.location.origin !== &#x27;null&#x27;) return window.location.origin;
+      }catch(e){}
+      return &#x27;https://contents-mu.vercel.app&#x27;;
+    }
+
     function onYouTubeIframeAPIReady(){
+      const ytOrigin = getYouTubeOrigin();
       player = new YT.Player(&#x27;player&#x27;, {
-        playerVars:{listType:&#x27;playlist&#x27;,list:(PLAYLISTS.find(p=&gt;p.key===&#x27;00s&#x27;)||PLAYLISTS[1]).playlistId,controls:1,rel:0,modestbranding:1,playsinline:1,enablejsapi:1},
+        host:&#x27;https://www.youtube.com&#x27;,
+        playerVars:{listType:&#x27;playlist&#x27;,list:(PLAYLISTS.find(p=&gt;p.key===&#x27;00s&#x27;)||PLAYLISTS[1]).playlistId,controls:1,rel:0,modestbranding:1,playsinline:1,enablejsapi:1,origin:ytOrigin},
         events:{
           onReady:()=&gt;{ ready=true; loadPlaylistSongs(); },
           onStateChange:e=&gt;{ if(e.data===YT.PlayerState.PLAYING) syncCurrentMeta(player,current); }
@@ -3266,7 +3278,8 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
 
       for(let i=1;i&lt;=3;i++){
         mixPlayers.push(new YT.Player(&#x27;mixPlayer&#x27;+i, {
-          playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1,enablejsapi:1},
+          host:&#x27;https://www.youtube.com&#x27;,
+          playerVars:{controls:1,rel:0,modestbranding:1,playsinline:1,enablejsapi:1,origin:ytOrigin},
           events:{
             onStateChange:e=&gt;{
               if(e.data===YT.PlayerState.PLAYING){
@@ -3295,9 +3308,7 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       if(pl.playlistIds){
         loadCombinedPlaylists(pl);
       }else{
-        player.cuePlaylist({list:pl.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC});
-        setTimeout(()=&gt;buildSongsFromPlaylist(pl), 1200);
-        setTimeout(()=&gt;buildSongsFromPlaylist(pl), 3200);
+        loadSinglePlaylist(pl);
       }
     }
 
@@ -3317,6 +3328,8 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
         title:`${source.name} ${String(i+1).padStart(3,&#x27;0&#x27;)}`,
         artist:&#x27;YouTube&#x27;,
         videoId,
+        playlistId:source.playlistId || &#x27;&#x27;,
+        playlistIndex:i,
         start:DEFAULT_START_SEC,
         playAt:DEFAULT_START_SEC,
         thumb:`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
@@ -3324,11 +3337,41 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       }));
     }
 
-    function buildSongsFromPlaylist(source=activePlaylist()){
-      if(!player || !player.getPlaylist) return;
-      const ids = player.getPlaylist() || [];
+    function cuePlaylistSafe(source){
+      if(!player || !source || !source.playlistId) return;
+      try{
+        player.cuePlaylist({list:source.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC});
+      }catch(e){
+        try{ player.loadPlaylist({list:source.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC}); player.stopVideo(); }catch(err){}
+      }
+    }
+
+    async function waitForPlaylistIds(source, timeoutMs=18000){
+      cuePlaylistSafe(source);
+      const started = Date.now();
+      let lastLen = 0;
+      while(Date.now() - started &lt; timeoutMs){
+        await new Promise(resolve=&gt;setTimeout(resolve, 700));
+        try{
+          const ids = (player &amp;&amp; player.getPlaylist) ? (player.getPlaylist() || []) : [];
+          if(ids.length){
+            if(ids.length === lastLen || Date.now() - started &gt; 1800) return ids;
+            lastLen = ids.length;
+          }
+        }catch(e){}
+      }
+      return [];
+    }
+
+    async function loadSinglePlaylist(source=activePlaylist()){
+      if(!player || !source || !source.playlistId) return;
+      document.getElementById(&#x27;questionHint&#x27;).textContent=`${source.name} 플레이리스트 로딩중입니다.`;
+      const ids = await waitForPlaylistIds(source, 20000);
       if(!ids.length){
-        document.getElementById(&#x27;questionHint&#x27;).textContent=`${source.name} 플레이리스트 로딩중입니다. 잠시 후 다시 눌러주세요.`;
+        songs = [];
+        updateStats();
+        renderList();
+        document.getElementById(&#x27;questionHint&#x27;).textContent=`${source.name} 플레이리스트를 아직 못 불러왔습니다. 브라우저가 유튜브 플레이리스트 API를 늦게 여는 경우가 있어 시대 선택을 다시 누르거나 새로고침해 주세요.`;
         return;
       }
       songs = makeSongsFromIds(ids, source);
@@ -3342,19 +3385,23 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
       const merged = [];
       for(const source of sources){
         document.getElementById(&#x27;questionHint&#x27;).textContent=`전체 모드: ${source.name} 불러오는 중...`;
-        player.cuePlaylist({list:source.playlistId,listType:&#x27;playlist&#x27;,index:0,startSeconds:DEFAULT_START_SEC});
-        await new Promise(resolve=&gt;setTimeout(resolve, 1600));
-        let ids = player.getPlaylist() || [];
-        for(let retry=0; retry&lt;4 &amp;&amp; !ids.length; retry++){
-          await new Promise(resolve=&gt;setTimeout(resolve, 1200));
-          try{ ids = player.getPlaylist() || []; }catch(e){ ids = []; }
+        const ids = await waitForPlaylistIds(source, 20000);
+        if(!ids.length){
+          console.warn(&#x27;playlist load failed&#x27;, source.name, source.playlistId);
         }
         merged.push(...makeSongsFromIds(ids, source, merged.length));
+        songs = merged;
+        updateStats();
+        renderList();
       }
       songs = merged;
       updateStats();
       renderList();
-      document.getElementById(&#x27;questionHint&#x27;).textContent=`전체 ${songs.length}곡 로드 완료 · 00/10/20년대 통합 랜덤 출제됩니다.`;
+      if(songs.length){
+        document.getElementById(&#x27;questionHint&#x27;).textContent=`전체 ${songs.length}곡 로드 완료 · 00/10/20년대 통합 랜덤 출제됩니다.`;
+      }else{
+        document.getElementById(&#x27;questionHint&#x27;).textContent=&#x27;전체 플레이리스트를 아직 못 불러왔습니다. 유튜브 API 로딩이 막힌 상태일 수 있어 새로고침하거나 00/10/20년대를 개별 선택해 주세요.&#x27;;
+      }
     }
 
     function sample(arr, n=1){

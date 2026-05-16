@@ -5968,6 +5968,9 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
   let idx = 0;
   let movieRealtimeApplying = false;
   let lastMovieEventId = '';
+  // 배포/새로고침 직후 Firebase에 남아있는 마지막 play 이벤트가 재실행되며
+  // 첫 번째 영상이 자동재생되는 문제 방지용 기준 시각
+  const movieQuoteBootAt = Date.now();
 
   function el(id){ return document.getElementById(id); }
   function makeEventId(){ return `${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
@@ -6039,6 +6042,15 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
 
   function applyMovieEvent(event){
     if(!event || !event.id || event.id === lastMovieEventId) return;
+
+    // onValue는 접속 직후 DB에 남아있는 마지막 이벤트도 한 번 내려준다.
+    // 그 이벤트가 과거 play 이벤트면 페이지 오픈만 해도 첫 영상이 자동재생되므로 무시한다.
+    const createdAt = Number(event.createdAt || 0);
+    if(createdAt && createdAt < movieQuoteBootAt - 500){
+      lastMovieEventId = event.id;
+      return;
+    }
+
     lastMovieEventId = event.id;
     const payload = event.payload || {};
     movieRealtimeApplying = true;
@@ -6061,6 +6073,8 @@ body.overlay-mode[data-overlay-target="songquiz"] .songquiz-object-overlay{
     if(el('movieQuoteHideBtn')) el('movieQuoteHideBtn').onclick = ()=>{ setAnswerVisible(false); commitMovieState('hideAnswer', {idx}); };
     if(el('movieQuoteNextBtn')) el('movieQuoteNextBtn').onclick = ()=>setMovie(idx + 1, true);
     setMovie(0, false, true);
+    const player = el('movieQuotePlayer');
+    if(player) player.src = 'about:blank';
     initRealtime();
   }
 
